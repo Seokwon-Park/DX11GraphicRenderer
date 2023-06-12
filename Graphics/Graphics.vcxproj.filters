@@ -21,11 +21,11 @@
     <ClCompile Include="Renderer\D3D11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header\D3D11Utilities.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\D3D11AppBase.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Header\D3D11Utilities.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -38,5 +38,9 @@
     <ClInclude Include="Header\D3D11AppBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PixelShader.hlsl" />
+    <FxCompile Include="VertexShader.hlsl" />
   </ItemGroup>
 </Project>
