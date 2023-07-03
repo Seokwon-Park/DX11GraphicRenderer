@@ -27,6 +27,9 @@
     <ClCompile Include="Header\D3D11Utilities.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\Geometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\D3D11Renderer.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header\D3D11AppBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

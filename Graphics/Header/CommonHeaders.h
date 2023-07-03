@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <tuple>
 #include <windows.h>
 #include <wrl.h> 
 
@@ -16,6 +17,8 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+
+#include "Geometry.h"
 
 #ifndef ThrowIfFailed
 #define ThrowIfFailed(x)                                                    \

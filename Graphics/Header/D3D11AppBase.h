@@ -39,7 +39,8 @@ namespace graphics
 		bool InitDirect3D11();
 		bool InitGUI();
 
-		void CreateVertexShaderAndInputLayout(const std::wstring& filename,
+		void CreateVertexShaderAndInputLayout(
+			const std::wstring& filename,
 			const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
 			ComPtr<ID3D11VertexShader>& vertexShader,
 			ComPtr<ID3D11InputLayout>& inputLayout);
