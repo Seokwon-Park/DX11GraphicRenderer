@@ -2,6 +2,7 @@
 
 #include "CommonHeaders.h"
 
+
 namespace graphics
 {
 	using namespace Microsoft::WRL;
@@ -38,6 +39,10 @@ namespace graphics
 		bool InitMainWindow();
 		bool InitDirect3D11();
 		bool InitGUI();
+
+		void SetViewport();
+		bool CreateRenderTargetView();
+		bool CreateDepthBuffer();
 
 		void CreateVertexShaderAndInputLayout(
 			const std::wstring& filename,
@@ -91,22 +96,40 @@ namespace graphics
 			InitData.SysMemPitch = 0;
 			InitData.SysMemSlicePitch = 0;
 
-			m_d3dDevice->CreateBuffer(&cbDesc, &InitData, constantBuffer.GetAddressOf());
+			auto hr = m_d3dDevice->CreateBuffer(&cbDesc, &InitData, constantBuffer.GetAddressOf());
+
+			if (FAILED(hr)) {
+				std::cout << "CreateConstantBuffer() CreateBuffer failed()."
+					<< std::endl;
+			}
 		}
 
 		template <typename T_DATA>
 		void UpdateBuffer(const T_DATA& bufferData, ComPtr<ID3D11Buffer>& buffer) {
+
+			if (!buffer) {
+				std::cout << "UpdateBuffer() buffer was not initialized."
+					<< std::endl;
+			}
+
 			D3D11_MAPPED_SUBRESOURCE ms;
 			m_d3dContext->Map(buffer.Get(), NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 			memcpy(ms.pData, &bufferData, sizeof(bufferData));
 			m_d3dContext->Unmap(buffer.Get(), NULL);
 		}
 
+
+		void CreateTexture(const std::string filename,
+			ComPtr<ID3D11Texture2D>	&texture,
+			ComPtr<ID3D11ShaderResourceView> &textureResourceView);
+
 	public:
 		// MainWindow Variables
 		int m_screenWidth;
 		int m_screenHeight;
+		float m_guiWidth = 0;
 		HWND m_mainWindow;
+		UINT m_numQualityLevels = 0;
 
 		// D3D11 Base		
 		// 디바이스, 컨텍스트

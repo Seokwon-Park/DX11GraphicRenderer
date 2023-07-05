@@ -137,26 +137,34 @@
     <ClCompile Include="Header\D3D11Utilities.h" />
     <ClCompile Include="Renderer\D3D11AppBase.cpp" />
     <ClCompile Include="Renderer\D3D11Renderer.cpp" />
-    <ClCompile Include="Renderer\Geometry.cpp" />
+    <ClCompile Include="Renderer\D3D11Geometry.cpp" />
     <ClCompile Include="Renderer\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\CommonHeaders.h" />
     <ClInclude Include="Header\D3D11AppBase.h" />
     <ClInclude Include="Header\D3D11Renderer.h" />
-    <ClInclude Include="Header\Geometry.h" />
+    <ClInclude Include="Header\D3D11Geometry.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="BasicPixelShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="BasicVertexShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CommonFunctions.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

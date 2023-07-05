@@ -18,7 +18,7 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 
-#include "Geometry.h"
+#include "D3D11Geometry.h"
 
 #ifndef ThrowIfFailed
 #define ThrowIfFailed(x)                                                    \

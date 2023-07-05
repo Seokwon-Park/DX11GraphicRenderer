@@ -4,7 +4,7 @@
 
 namespace graphics {
     using namespace DirectX;
-
+    using namespace Microsoft::WRL;
 
     // Vertex Struct
     struct Vertex {
@@ -33,7 +33,6 @@ namespace graphics {
     public:
         //static std::vector<MeshData> ReadFromFile(std::string basePath,
         //    std::string filename);
-
         static MeshData MakeSquare();
         static MeshData MakeCube(float width, float height, float depth, float scale);
         //static MeshData MakeCylinder(const float bottomRadius,

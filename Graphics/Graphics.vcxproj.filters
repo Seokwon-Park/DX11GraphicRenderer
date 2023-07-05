@@ -27,7 +27,7 @@
     <ClCompile Include="Header\D3D11Utilities.h">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\Geometry.cpp">
+    <ClCompile Include="Renderer\D3D11Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,12 +41,15 @@
     <ClInclude Include="Header\D3D11AppBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header\Geometry.h">
+    <ClInclude Include="Header\D3D11Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl" />
-    <FxCompile Include="VertexShader.hlsl" />
+    <FxCompile Include="BasicPixelShader.hlsl" />
+    <FxCompile Include="BasicVertexShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CommonFunctions.hlsli" />
   </ItemGroup>
 </Project>
