@@ -35,9 +35,9 @@ namespace graphics {
         //    std::string filename);
         static MeshData MakeSquare();
         static MeshData MakeCube(float width, float height, float depth, float scale);
-        //static MeshData MakeCylinder(const float bottomRadius,
-        //    const float topRadius, float height,
-        //    int numSlices);
+        static MeshData MakeGrid(const float width, const float height,
+            const int numSlices, const int numStacks);
+        static MeshData MakeCylinder(const float bottomRadius, const float topRadius, float height, int numSlices);
         //static MeshData MakeSphere(const float radius, const int numSlices,
         //    const int numStacks);
         //static MeshData MakeTetrahedron();

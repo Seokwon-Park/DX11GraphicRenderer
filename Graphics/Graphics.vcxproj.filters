@@ -48,8 +48,10 @@
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl" />
     <FxCompile Include="BasicVertexShader.hlsl" />
+    <FxCompile Include="NormalPixelShader.hlsl" />
+    <FxCompile Include="NormalVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CommonFunctions.hlsli" />
+    <None Include="Commons.hlsli" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
-#include "CommonFunctions.hlsli" 
+#include "Commons.hlsli" 
 
-cbuffer ModelViewProjectionConstantBuffer : register(b0)
+cbuffer BasicVertexConstantBuffer : register(b0)
 {
     matrix world;
     matrix invTranspose;
@@ -23,6 +23,7 @@ PixelShaderInput main(VertexShaderInput input)
 
     output.posProj = pos;
     output.uv = input.uv;
+    output.color = float3(0.0f, 0.0f, 0.0f); // 다른 쉐이더에서 사용
     
     float4 normal = float4(input.normal, 0.0f);
     output.normalWorld = mul(normal, invTranspose).xyz;

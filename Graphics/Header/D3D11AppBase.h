@@ -140,7 +140,9 @@ namespace graphics
 		// 스왑체인
 		ComPtr<IDXGISwapChain> m_swapChain;
 		// 래스터라이저
-		ComPtr<ID3D11RasterizerState> m_rasterizerState;
+		ComPtr<ID3D11RasterizerState> m_solidRasterizerState;
+		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
+		bool m_drawAsWire = false;
 
 		// Depth buffer 관련
 		ComPtr<ID3D11Texture2D> m_depthStencilBuffer;

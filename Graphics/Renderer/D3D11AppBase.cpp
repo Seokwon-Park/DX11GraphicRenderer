@@ -335,7 +335,7 @@ namespace graphics
 
 		SetViewport();
 
-		// Create a rasterizer state
+		// Create a solid rasterizer state
 		D3D11_RASTERIZER_DESC rastDesc;
 		ZeroMemory(&rastDesc, sizeof(D3D11_RASTERIZER_DESC)); // Need this
 		rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
@@ -344,7 +344,15 @@ namespace graphics
 		rastDesc.FrontCounterClockwise = false;
 		rastDesc.DepthClipEnable = true;
 
-		m_d3dDevice->CreateRasterizerState(&rastDesc, m_rasterizerState.GetAddressOf());
+		m_d3dDevice->CreateRasterizerState(&rastDesc, m_solidRasterizerState.GetAddressOf());
+
+		// Create a wired rasterizer state
+		rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+
+		m_d3dDevice->CreateRasterizerState(&rastDesc, m_wiredRasterizerState.GetAddressOf());
+
+
+
 
 		// Create depth buffer
 		CreateDepthBuffer();
