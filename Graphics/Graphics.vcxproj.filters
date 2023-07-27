@@ -15,33 +15,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Renderer\main.cpp">
+    <ClCompile Include="Source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\D3D11Renderer.cpp">
+    <ClCompile Include="Source\D3D11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\D3D11AppBase.cpp">
+    <ClCompile Include="Source\D3D11AppBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Header\D3D11Utilities.h">
+    <ClCompile Include="Source\D3D11Utilities.h">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\D3D11Geometry.cpp">
+    <ClCompile Include="Source\D3D11Geometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header\D3D11Renderer.h">
+    <ClInclude Include="Source\D3D11Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header\CommonHeaders.h">
+    <ClInclude Include="Source\CommonHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header\D3D11AppBase.h">
+    <ClInclude Include="Source\D3D11AppBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header\D3D11Geometry.h">
+    <ClInclude Include="Source\D3D11Geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

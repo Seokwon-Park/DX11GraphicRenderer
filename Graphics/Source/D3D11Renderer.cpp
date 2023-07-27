@@ -27,9 +27,13 @@ namespace graphics
 		// Create the Sample State
 		m_d3dDevice->CreateSamplerState(&sampDesc, m_samplerState.GetAddressOf());
 
-		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 5, 5);
+		MeshData meshData = Geometry::MakeSphere(1.f, 3, 3);
+
+		meshData = Geometry::SubdivideToSphere(1.f, meshData);
+		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
+		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 25, 25);
 		//MeshData meshData = Geometry::MakeSquare();
-		MeshData meshData = Geometry::MakeCube(1,1,1,1);
+		//MeshData meshData = Geometry::MakeCube(1,1,1,1);
 
 		m_mesh = std::make_shared<Mesh>();
 
@@ -276,13 +280,13 @@ namespace graphics
 		if (ImGui::TreeNode("General")) {
 			ImGui::Checkbox("Use Texture", &m_basicPixelConstantBufferData.useTexture);
 			ImGui::Checkbox("usePerspectiveProjection", &m_usePerspectiveProjection);
+			ImGui::Checkbox("drawAsWire", &m_drawAsWire);
 			ImGui::Checkbox("drawNormals", &m_drawNormals);
 			if (ImGui::SliderFloat("Normal scale",
 				&m_normalVertexConstantBufferData.scale, 0.0f,
 				1.0f)) {
 				m_dirtyFlag = true;
 			}
-			ImGui::Checkbox("drawAsWire", &m_drawAsWire);
 
 			ImGui::SliderFloat3("m_modelTranslation", &m_modelTranslation.x, -2.0f, 2.0f);
 			ImGui::SliderFloat3("m_modelRotation(Rad)", &m_modelRotation.x, -3.14f, 3.14f);
@@ -334,7 +338,5 @@ namespace graphics
 				512.0f);
 			ImGui::TreePop();
 		}
-
-		
 	}
 }
