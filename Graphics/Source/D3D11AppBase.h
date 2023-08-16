@@ -12,10 +12,9 @@ namespace graphics
 	public:
 		// 생성자
 		D3D11AppBase();
-
 		// 소멸자
 		virtual ~D3D11AppBase();
-
+		// 화면 가로비
 		float GetAspectRatio() const;
 
 		// 렌더러 실행 시
@@ -35,7 +34,7 @@ namespace graphics
 		virtual void OnMouseUp(WPARAM btnState, int x, int y) {};
 		virtual void OnMouseMove(WPARAM btnState, int x, int y) {};
 
-	protected: // 상속받은 클래스에서도 접근이 가능한 함수들=protected
+	protected: // 상속받은 클래스에서도 접근이 가능한 함수들 = protected
 		bool InitMainWindow();
 		bool InitDirect3D11();
 		bool InitGUI();
@@ -52,7 +51,7 @@ namespace graphics
 		void CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader);
 		void CreateIndexBuffer(const std::vector<uint16_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer);
 
-
+		// Template는 헤더 파일에 정의
 		template <typename T_VERTEX>
 		void CreateVertexBuffer(const std::vector<T_VERTEX>& vertices, ComPtr<ID3D11Buffer>& vertexBuffer) {
 

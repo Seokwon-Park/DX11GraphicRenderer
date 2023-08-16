@@ -10,6 +10,8 @@ namespace graphics
 	// RegisterClassEx()에서 멤버 함수를 직접 등록할 수가 없기 때문에
 	// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리할 수 있도록 한다.
 	D3D11AppBase* g_appBase = nullptr;
+
+	// 너비 높이 설정
 	const int WIDTH = 1280;
 	const int HEIHGT = 960;
 
@@ -20,12 +22,14 @@ namespace graphics
 		return g_appBase->MsgProc(hwnd, msg, wParam, lParam);
 	}
 
+	//Constructor
 	D3D11AppBase::D3D11AppBase()
 		:m_screenWidth(WIDTH), m_screenHeight(HEIHGT), m_mainWindow(0), m_screenViewport(D3D11_VIEWPORT())
 	{
 		g_appBase = this;
 	}
 
+	//Destructor
 	D3D11AppBase::~D3D11AppBase()
 	{
 		g_appBase = nullptr;
@@ -35,6 +39,7 @@ namespace graphics
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 
+		//Destroy Window
 		DestroyWindow(m_mainWindow);
 	}
 
@@ -91,22 +96,22 @@ namespace graphics
 		return 0;
 	}
 
-	// 초기화
+	// Initialize Essentials(if failed, return false)
 	bool D3D11AppBase::Initialize()
 	{
-		// Window 초기화 검사
+		// Check Window Init
 		if (!InitMainWindow())
 		{
 			return false;
 		}
 
-		// DirectX11 초기화 검사
+		// Check DirectX11 Init
 		if (!InitDirect3D11())
 		{
 			return false;
 		}
 
-		// IMGUI 초기화 검사
+		// Check IMGUI Init
 		if (!InitGUI())
 		{
 			return false;
@@ -139,8 +144,6 @@ namespace graphics
 				CreateDepthBuffer();
 				SetViewport();
 			}
-
-
 
 			break;
 		case WM_SYSCOMMAND:
@@ -191,7 +194,7 @@ namespace graphics
 
 		// 툴바까지 포함한 윈도우 전체 해상도가 아니라
 		// 우리가 실제로 그리는 해상도가 width x height가 되도록
-		// 윈도우를 만들 해상도를 다시 계산해서 CreateWindow()에서 사용
+		// 윈도우를 만들 해상도를 다시 계산해서 CreateWindow()에서 사용하도록 한다.
 
 		// 우리가 원하는 그림이 그려질 부분의 해상도
 		RECT windowRect = { 0, 0, m_screenWidth, m_screenHeight };

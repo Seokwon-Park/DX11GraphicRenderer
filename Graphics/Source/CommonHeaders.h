@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <wrl.h> 
 
-//#include <fbxsdk.h>
+#include <fbxsdk.h>
 
 //Imgui.h>
 #include <imgui.h>
@@ -20,6 +20,10 @@
 #include <DirectXMath.h>
 
 #include "D3D11Geometry.h"
+
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\debug\\libfbxsdk-md.lib")
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\debug\\libxml2-md.lib")
+#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\debug\\zlib-md.lib")
 
 #ifndef ThrowIfFailed
 #define ThrowIfFailed(x)                                                    \

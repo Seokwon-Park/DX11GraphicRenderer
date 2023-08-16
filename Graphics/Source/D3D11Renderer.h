@@ -3,12 +3,12 @@
 
 namespace graphics
 {
-
+	// 4byte = 32bit(float, default int = int32)
 	using namespace DirectX;
 
 	// Vertex셰이더 상수
 	struct BasicVertexConstantBuffer {
-		XMMATRIX world;
+		XMMATRIX world;			//XMMATRIX float(4byte)*4*4 = 64byte 아무튼 16배수
 		XMMATRIX invTranspose;
 		XMMATRIX view;
 		XMMATRIX projection;
@@ -32,9 +32,9 @@ namespace graphics
 	// 조명
 	struct Light {
 		// 순서와 크기 관계 주의 (16 바이트 패딩)
-		XMFLOAT3 position = XMFLOAT3(0.f, 0.f, -2.f);// 12byte
+		XMFLOAT3 position = XMFLOAT3(0.f, 0.f, -2.f);	// 12byte
 		float fallOffStart = 0.0f;						// 4byte
-		XMFLOAT3 direction = XMFLOAT3(0.f, 0.f, 1.f);// 12byte
+		XMFLOAT3 direction = XMFLOAT3(0.f, 0.f, 1.f);	// 12byte
 		float fallOffEnd = 10.0f;						// 4byte
 		XMFLOAT3 strength = XMFLOAT3(1.f, 1.f, 1.f);	// 12byte
 		float spotPower = 1.0f;							// 4byte
@@ -43,7 +43,7 @@ namespace graphics
 	// Pixel셰이더 상수
 	struct BasicPixelConstantBuffer {
 		XMFLOAT3 eyeWorld;        // 12
-		bool useTexture;		  // 4
+		bool useTexture;		  // 4 bool이지만 4라고함
 		Material material;		  // 48 16*3
 		Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
 	};
@@ -51,6 +51,7 @@ namespace graphics
 	static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,
 		"Constant Buffer size must be 16-byte aligned");
 
+	// Normal그리기 길이 상수
 	struct NormalVertexConstantBuffer {
 		float scale = 0.1f;
 		float pad[3];
@@ -69,8 +70,11 @@ namespace graphics
 		virtual void Update(float dt) override;
 		virtual void Render() override;
 
+		void ProcessNode(FbxNode* node, const FbxScene* scene);
+
 	protected:
-		std::shared_ptr<Mesh> m_mesh;
+		std::vector<std::shared_ptr<Mesh>> m_meshes;
+		FbxManager* lSdkManager;
 
 		//Shaders
 		//Basic

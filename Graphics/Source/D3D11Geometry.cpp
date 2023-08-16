@@ -1,6 +1,6 @@
 #include "CommonHeaders.h"
 
-
+//LeftHanded CW
 namespace graphics
 {
 	using namespace DirectX;
@@ -55,7 +55,6 @@ namespace graphics
 		MeshData meshData;
 
 		std::vector<XMFLOAT3> positions;
-		std::vector<XMFLOAT3> colors;
 		std::vector<XMFLOAT3> normals;
 		std::vector<XMFLOAT2> texcoords; // ÅØ½ºÃç ÁÂÇ¥
 
@@ -64,10 +63,6 @@ namespace graphics
 		positions.push_back(XMFLOAT3(-1.0f, 1.0f, 1.0f));
 		positions.push_back(XMFLOAT3(1.0f, 1.0f, 1.0f));
 		positions.push_back(XMFLOAT3(1.0f, 1.0f, -1.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));
 		normals.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
 		normals.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
 		normals.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
@@ -82,10 +77,6 @@ namespace graphics
 		positions.push_back(XMFLOAT3(1.0f, -1.0f, -1.0f));
 		positions.push_back(XMFLOAT3(1.0f, -1.0f, 1.0f));
 		positions.push_back(XMFLOAT3(-1.0f, -1.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 0.0f));
 		normals.push_back(XMFLOAT3(0.0f, -1.0f, 0.0f));
 		normals.push_back(XMFLOAT3(0.0f, -1.0f, 0.0f));
 		normals.push_back(XMFLOAT3(0.0f, -1.0f, 0.0f));
@@ -100,10 +91,6 @@ namespace graphics
 		positions.push_back(XMFLOAT3(-1.0f, 1.0f, -1.0f));
 		positions.push_back(XMFLOAT3(1.0f, 1.0f, -1.0f));
 		positions.push_back(XMFLOAT3(1.0f, -1.0f, -1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
 		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
 		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
 		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
@@ -118,10 +105,6 @@ namespace graphics
 		positions.push_back(XMFLOAT3(1.0f, -1.0f, 1.0f));
 		positions.push_back(XMFLOAT3(1.0f, 1.0f, 1.0f));
 		positions.push_back(XMFLOAT3(-1.0f, 1.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 1.0f));
-		colors.push_back(XMFLOAT3(0.0f, 1.0f, 1.0f));
 		normals.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
 		normals.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
 		normals.push_back(XMFLOAT3(0.0f, 0.0f, 1.0f));
@@ -136,10 +119,6 @@ namespace graphics
 		positions.push_back(XMFLOAT3(-1.0f, 1.0f, 1.0f));
 		positions.push_back(XMFLOAT3(-1.0f, 1.0f, -1.0f));
 		positions.push_back(XMFLOAT3(-1.0f, -1.0f, -1.0f));
-		colors.push_back(XMFLOAT3(1.0f, 1.0f, 0.0f));
-		colors.push_back(XMFLOAT3(1.0f, 1.0f, 0.0f));
-		colors.push_back(XMFLOAT3(1.0f, 1.0f, 0.0f));
-		colors.push_back(XMFLOAT3(1.0f, 1.0f, 0.0f));
 		normals.push_back(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 		normals.push_back(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 		normals.push_back(XMFLOAT3(-1.0f, 0.0f, 0.0f));
@@ -154,10 +133,6 @@ namespace graphics
 		positions.push_back(XMFLOAT3(1.0f, -1.0f, -1.0f));
 		positions.push_back(XMFLOAT3(1.0f, 1.0f, -1.0f));
 		positions.push_back(XMFLOAT3(1.0f, 1.0f, 1.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 1.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 1.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 1.0f));
-		colors.push_back(XMFLOAT3(1.0f, 0.0f, 1.0f));
 		normals.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));
 		normals.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));
 		normals.push_back(XMFLOAT3(1.0f, 0.0f, 0.0f));

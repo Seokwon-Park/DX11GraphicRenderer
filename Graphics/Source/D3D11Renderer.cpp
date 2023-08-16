@@ -4,52 +4,182 @@ namespace graphics
 {
 	D3D11Renderer::D3D11Renderer() : D3D11AppBase(), m_basicVertexConstantBufferData() {}
 
+	std::vector<MeshData> meshes;
+
+	MeshData ProcessMesh(FbxMesh* mesh, const FbxScene* scene) {
+
+		// Data to fill
+		std::vector<Vertex> vertices;
+		std::vector<uint16_t> indices;
+
+		FbxVector4* controlPoints = mesh->GetControlPoints();
+		int vertexCount = mesh->GetControlPointsCount();
+
+
+		for (int i = 0; i < vertexCount; ++i) {
+			Vertex vertex;
+			FbxVector4 controlPoint = controlPoints[i];
+			FbxVector4 normal;
+			mesh->GetPolygonVertexNormal(0, i, normal);
+
+			vertex.position.x = static_cast<float>(controlPoint[0]);
+			vertex.position.y = static_cast<float>(controlPoint[1]);
+			vertex.position.z = static_cast<float>(controlPoint[2]);
+
+			vertex.normal.x = normal[0];
+			vertex.normal.y = normal[1];
+			vertex.normal.z = normal[2];
+
+			vertices.push_back(vertex);
+		}
+
+
+		for (int i = 0; i < mesh->GetPolygonCount(); ++i) {
+			for (int j = 0; j < 3; ++j) {
+				int* index = mesh->GetPolygonVertices();
+				indices.push_back(index[j]);
+			}
+		}
+
+		MeshData newMesh;
+		newMesh.vertices = vertices;
+		newMesh.indices = indices;
+
+		return newMesh;
+	}
+
+	void D3D11Renderer::ProcessNode(FbxNode* node, const FbxScene* scene)
+	{
+		const int num_attributes{ node->GetNodeAttributeCount() };
+		for (int i{ 0 }; i < num_attributes; i++)
+		{
+			FbxNodeAttribute* attribute{ node->GetNodeAttributeByIndex(i) };
+			const FbxNodeAttribute::EType attribute_type{ attribute->GetAttributeType() };
+			if (attribute_type == FbxNodeAttribute::eMesh)
+			{
+				FbxMesh* mesh = (FbxMesh*)attribute;
+				auto newMesh = ProcessMesh(mesh, scene);
+
+				meshes.emplace_back(newMesh);
+			}
+		}
+		if (const int numChild = node->GetChildCount())
+		{
+			for (int i = 0; i < numChild; i++) {
+				ProcessNode(node->GetChild(i), scene);
+			}
+		}
+
+	}
+
 	bool D3D11Renderer::Initialize()
 	{
+		// Initialize Essentials
 		if (!D3D11AppBase::Initialize())
 			return false;
 
+
+		//가져오는 순서 Importer 초기화 - Importer에서 Scene 가져오기 - 이후 모델 불러올 수 있다.
+		const char* lFilename = "d:/zelda.fbx";
+
+		// Initialize the SDK manager. This object handles memory management.
+		lSdkManager = FbxManager::Create();
+
+		// Create the IO settings object.
+		FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+		lSdkManager->SetIOSettings(ios);
+
+		// Create an importer using the SDK manager.
+		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+		// Use the first argument as the filename for the importer.
+		if (!lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings())) {
+			printf("Call to FbxImporter::Initialize() failed.\n");
+			printf("Error returned: %s\n\n", lImporter->GetStatus().GetErrorString());
+			exit(-1);
+		}
+
+		// Create a new scene so that it can be populated by the imported file.
+		FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
+		lScene->GetGlobalSettings().SetAxisSystem(FbxAxisSystem::EPreDefinedAxisSystem::eDirectX);
+		// Import the contents of the file into the scene.
+		lImporter->Import(lScene);
+
+		// The file is imported, so get rid of the importer.
+		lImporter->Destroy();
+
+		FbxNode* lRootNode = lScene->GetRootNode();
+		if (lRootNode) {
+			ProcessNode(lRootNode, lScene);
+		}
+		// Destroy the SDK manager and all the other objects it was handling.
+		lSdkManager->Destroy();
+
+
+
+
+
+		//
 		D3D11AppBase::CreateTexture("D:\\Graphics\\wall.jpg", m_texture,
 			m_textureResourceView);
 
 
 		// Texture sampler 만들기
-		D3D11_SAMPLER_DESC sampDesc;
-		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		D3D11_SAMPLER_DESC samplerDesc;
+		ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 		// Create the Sample State
-		m_d3dDevice->CreateSamplerState(&sampDesc, m_samplerState.GetAddressOf());
+		m_d3dDevice->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
 
-		MeshData meshData = Geometry::MakeSphere(1.f, 3, 3);
+		//MeshData meshData = Geometry::MakeSphere(1.f, 3, 3);
 
-		meshData = Geometry::SubdivideToSphere(1.f, meshData);
+		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
 		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 25, 25);
 		//MeshData meshData = Geometry::MakeSquare();
 		//MeshData meshData = Geometry::MakeCube(1,1,1,1);
 
-		m_mesh = std::make_shared<Mesh>();
+		//m_mesh = std::make_shared<Mesh>();
 
-		D3D11AppBase::CreateVertexBuffer(meshData.vertices, m_mesh->vertexBuffer);
-		// 인덱스 버퍼 만들기
-		m_mesh->m_indexCount= UINT(meshData.indices.size());
-		D3D11AppBase::CreateIndexBuffer(meshData.indices, m_mesh->indexBuffer);
+		//D3D11AppBase::CreateVertexBuffer(meshData.vertices, m_mesh->vertexBuffer);
+		//// 인덱스 버퍼 만들기
+		//m_mesh->m_indexCount = UINT(meshData.indices.size());
+		//D3D11AppBase::CreateIndexBuffer(meshData.indices, m_mesh->indexBuffer);
 
 		// ConstantBuffer 만들기
 		m_basicVertexConstantBufferData.world = XMMATRIX();
 		m_basicVertexConstantBufferData.view = XMMATRIX();
 		m_basicVertexConstantBufferData.projection = XMMATRIX();
 
-		D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData, m_mesh->vertexConstantBuffer);
+		//D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData, m_mesh->vertexConstantBuffer);
 
-		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData, m_mesh->pixelConstantBuffer);
+		//D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData, m_mesh->pixelConstantBuffer);
+
+		ComPtr<ID3D11Buffer> vertexConstantBuffer;
+		ComPtr<ID3D11Buffer> pixelConstantBuffer;
+		D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData,
+			vertexConstantBuffer);
+		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData,
+			pixelConstantBuffer);
+
+		for (const auto& meshData : meshes) {
+			auto newMesh = std::make_shared<Mesh>();
+			D3D11AppBase::CreateVertexBuffer(meshData.vertices, newMesh->vertexBuffer);
+			newMesh->m_indexCount = UINT(meshData.indices.size());
+			D3D11AppBase::CreateIndexBuffer(meshData.indices, newMesh->indexBuffer);
+
+			newMesh->vertexConstantBuffer = vertexConstantBuffer;
+			newMesh->pixelConstantBuffer = pixelConstantBuffer;
+
+			this->m_meshes.push_back(newMesh);
+		}
 
 		// 쉐이더 만들기
 
@@ -83,18 +213,22 @@ namespace graphics
 
 		std::vector<Vertex> normalVertices;
 		std::vector<uint16_t> normalIndices;
-		for (size_t i = 0; i < meshData.vertices.size(); i++) {
+		size_t offset = 0;
+		for (const auto& meshData : meshes) {
+			for (size_t i = 0; i < meshData.vertices.size(); i++) {
 
-			auto v = meshData.vertices[i];
+				auto v = meshData.vertices[i];
 
-			v.texcoord.x = 0.0f; // 시작점 표시
-			normalVertices.push_back(v);
+				v.texcoord.x = 0.0f; // 시작점 표시
+				normalVertices.push_back(v);
 
-			v.texcoord.x = 1.0f; // 끝점 표시
-			normalVertices.push_back(v);
+				v.texcoord.x = 1.0f; // 끝점 표시
+				normalVertices.push_back(v);
 
-			normalIndices.push_back(uint16_t(2 * i));
-			normalIndices.push_back(uint16_t(2 * i + 1));
+				normalIndices.push_back(uint32_t(2 * (i + offset)));
+				normalIndices.push_back(uint32_t(2 * (i + offset) + 1));
+			}
+			offset += meshData.vertices.size();
 		}
 
 		// TODO: 여기에 필요한 내용들 작성
@@ -132,7 +266,7 @@ namespace graphics
 		basicVertexData.invTranspose = basicVertexData.world;
 		basicVertexData.invTranspose *= XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
 		basicVertexData.invTranspose =
-			XMMatrixInverse(nullptr,XMMatrixTranspose(basicVertexData.invTranspose));
+			XMMatrixInverse(nullptr, XMMatrixTranspose(basicVertexData.invTranspose));
 
 
 		// 시점 변환
@@ -140,7 +274,7 @@ namespace graphics
 			XMMatrixRotationY(m_viewRot) *
 			XMMatrixTranslation(0.0f, 0.0f, 2.0f);
 
-		
+
 		XMStoreFloat3(&m_basicPixelConstantBufferData.eyeWorld, XMVector3Transform(
 			XMVectorZero(), XMMatrixInverse(nullptr, basicVertexData.view)));
 
@@ -160,10 +294,10 @@ namespace graphics
 		basicVertexData.projection = XMMatrixTranspose(basicVertexData.projection);
 
 		// Constant를 CPU에서 GPU로 복사
-		D3D11AppBase::UpdateBuffer(basicVertexData, m_mesh->vertexConstantBuffer);
+		D3D11AppBase::UpdateBuffer(basicVertexData, m_meshes[0]->vertexConstantBuffer);
 
 		basicPixelData.material.diffuse = XMFLOAT3(m_materialDiffuse, m_materialDiffuse, m_materialDiffuse);
-		basicPixelData.material.specular = XMFLOAT3(m_materialSpecular, m_materialSpecular, m_materialSpecular );
+		basicPixelData.material.specular = XMFLOAT3(m_materialSpecular, m_materialSpecular, m_materialSpecular);
 
 		// 여러 개 조명 사용 예시
 		for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -178,7 +312,7 @@ namespace graphics
 		}
 
 		D3D11AppBase::UpdateBuffer(basicPixelData,
-			m_mesh->pixelConstantBuffer);
+			m_meshes[0]->pixelConstantBuffer);
 
 		// 노멀 벡터 그리기
 		if (m_drawNormals && m_dirtyFlag) {
@@ -231,14 +365,14 @@ namespace graphics
 		};
 		m_context->VSSetConstantBuffers(0, 1, pptr); */
 
-		m_d3dContext->VSSetConstantBuffers(0, 1, m_mesh->vertexConstantBuffer.GetAddressOf());
+		m_d3dContext->VSSetConstantBuffers(0, 1, m_meshes[0]->vertexConstantBuffer.GetAddressOf());
 
 		ID3D11ShaderResourceView* pixelResources[1] = { m_textureResourceView.Get() };
 		//좀 괜찮은 쉐이더를 짤때는 텍스처 여러장을 사용하기 때문에 배열 형태로
 		m_d3dContext->PSSetShaderResources(0, 1, pixelResources);
 		m_d3dContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
-		m_d3dContext->PSSetConstantBuffers(0, 1, m_mesh->pixelConstantBuffer.GetAddressOf());
+		m_d3dContext->PSSetConstantBuffers(0, 1, m_meshes[0]->pixelConstantBuffer.GetAddressOf());
 		m_d3dContext->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 
 		if (m_drawAsWire)
@@ -250,10 +384,10 @@ namespace graphics
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 		m_d3dContext->IASetInputLayout(m_colorInputLayout.Get());
-		m_d3dContext->IASetVertexBuffers(0, 1, m_mesh->vertexBuffer.GetAddressOf(), &stride, &offset);
-		m_d3dContext->IASetIndexBuffer(m_mesh->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		m_d3dContext->IASetVertexBuffers(0, 1, m_meshes[0]->vertexBuffer.GetAddressOf(), &stride, &offset);
+		m_d3dContext->IASetIndexBuffer(m_meshes[0]->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 		m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_d3dContext->DrawIndexed(m_mesh->m_indexCount, 0, 0);
+		m_d3dContext->DrawIndexed(m_meshes[0]->m_indexCount, 0, 0);
 
 		if (m_drawNormals) {
 			// TODO: 여기에 필요한 내용들 작성
