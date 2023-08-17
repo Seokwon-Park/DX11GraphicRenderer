@@ -7,7 +7,7 @@ namespace graphics
 	bool FbxLoader::Initialize()
 	{
 		//가져오는 순서 Importer 초기화 - Importer에서 Scene 가져오기 - 이후 모델 불러올 수 있다.
-		const char* lFilename = "d:/zelda.fbx";
+		const char* lFilename = "d:/cube.fbx";
 
 		// Initialize the SDK manager. This object handles memory management.
 		m_fbxManager = FbxManager::Create();
@@ -130,62 +130,108 @@ namespace graphics
 			//int gpsize = mesh->GetPolygonSize(i) - 2; // if 4 = 2 tri, 3 = 1 tri
 			Vertex vertex;
 			//int vertexIndex[3] = { 0, 1, 2 };
-			int p1 = mesh->GetPolygonVertex(i, 0);
-			int p2 = mesh->GetPolygonVertex(i, 1);
-			int p3 = mesh->GetPolygonVertex(i, 2);
-			FbxVector4 controlPoint1 = controlPoints[p1];
-			FbxVector4 controlPoint2 = controlPoints[p2];
-			FbxVector4 controlPoint3 = controlPoints[p3];
+			for (int j = 0; j < 3; j++)
+			{
+				int pointIndex = mesh->GetPolygonVertex(i, j);
+				FbxVector4 controlPoint1 = controlPoints[pointIndex];
+				//FbxVector4 controlPoint2 = controlPoints[p2];
+				//FbxVector4 controlPoint3 = controlPoints[p3];
 
-			FbxVector4 side1 = controlPoint2 - controlPoint1;
-			FbxVector4 side2 = controlPoint3 - controlPoint1;
+				//FbxVector4 side1 = controlPoint2 - controlPoint1;
+				//FbxVector4 side2 = controlPoint3 - controlPoint1;
 
-			XMVECTOR a = XMVectorSet(side1[0], side1[1], side1[2], side1[3]);
-			XMVECTOR b = XMVectorSet(side2[0], side2[1], side2[2], side2[3]);
-			XMFLOAT3 result;
-			XMStoreFloat3(&result, XMVector3Normalize(XMVector3Cross(a, b)));
+				//XMVECTOR a = XMVectorSet(side1[0], side1[1], side1[2], side1[3]);
+				//XMVECTOR b = XMVectorSet(side2[0], side2[1], side2[2], side2[3]);
+				//XMFLOAT3 result;
+				//XMStoreFloat3(&result, XMVector3Normalize(XMVector3Cross(a, b)));
 
-			//FbxArray<FbxVector4> normalElement;
-			//mesh->GetPolygonVertexNormals(normalElement);
-			FbxGeometryElementNormal* normalElement = mesh->GetElementNormal(0);
+				//FbxArray<FbxVector4> normalElement;
+				//mesh->GetPolygonVertexNormals(normalElement);
+				FbxGeometryElementNormal* normalElement = mesh->GetElementNormal(0);
+				XMFLOAT3 result= XMFLOAT3();
 
-			int sibalcpp = mesh->GetElementNormalCount() * 3;
-			//for (int m = 0; m < 24; m++)
-			//{
-			//	FbxVector4 normal = normalElement->GetDirectArray().GetAt(m);
-			//	std::cout << m <<" " << normal[0] << " " << normal[1] << " " << normal[2] << "\n";
-			//}
+				switch (normalElement->GetMappingMode()) // 매핑 모드
+				{
+				case FbxGeometryElement::eByControlPoint:
+					// control point mapping
+					switch (normalElement->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+					{
+						result.x = static_cast<float>(normalElement->GetDirectArray().GetAt(pointIndex).mData[0]);
+						result.y = static_cast<float>(normalElement->GetDirectArray().GetAt(pointIndex).mData[1]);
+						result.z = static_cast<float>(normalElement->GetDirectArray().GetAt(pointIndex).mData[2]);
+					}
+					break;
 
-			FbxVector4 controlPoint = controlPoints[p1];
-			vertex.position.x = controlPoint[0];
-			vertex.position.y = controlPoint[1];
-			vertex.position.z = controlPoint[2];		
-			//vertex.normal = result;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int index = normalElement->GetIndexArray().GetAt(pointIndex); // 인덱스를 얻어온다.
+						result.x = static_cast<float>(normalElement->GetDirectArray().GetAt(index).mData[0]);
+						result.y = static_cast<float>(normalElement->GetDirectArray().GetAt(index).mData[1]);
+						result.z = static_cast<float>(normalElement->GetDirectArray().GetAt(index).mData[2]);
+					}
+					break;
+					}
+				case FbxGeometryElement::eByPolygonVertex:
+					// polygon vertex mapping
+					switch (normalElement->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+					{
+						result.x = static_cast<float>(normalElement->GetDirectArray().GetAt(pointIndex).mData[0]);
+						result.y = static_cast<float>(normalElement->GetDirectArray().GetAt(pointIndex).mData[1]);
+						result.z = static_cast<float>(normalElement->GetDirectArray().GetAt(pointIndex).mData[2]);
+					}
+					break;
 
-			FbxVector4 normal = normalElement->GetDirectArray().GetAt(p1*3);
-			vertex.normal = XMFLOAT3(normal[0], normal[1], normal[2]);
-			vertices.push_back(vertex);
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int index = normalElement->GetIndexArray().GetAt(pointIndex); // 인덱스를 얻어온다.
+						result.x = static_cast<float>(normalElement->GetDirectArray().GetAt(index).mData[0]);
+						result.y = static_cast<float>(normalElement->GetDirectArray().GetAt(index).mData[1]);
+						result.z = static_cast<float>(normalElement->GetDirectArray().GetAt(index).mData[2]);
+					}
+					break;
+					}
+					break;
+				}
+				//for (int m = 0; m < 24; m++)
+				//{
+				//	FbxVector4 normal = normalElement->GetDirectArray().GetAt(m);
+				//	std::cout << m <<" " << normal[0] << " " << normal[1] << " " << normal[2] << "\n";
+				//}
 
-			controlPoint = controlPoints[p2];
-			vertex.position.x = controlPoint[0];
-			vertex.position.y = controlPoint[1];
-			vertex.position.z = controlPoint[2];		
-			//vertex.normal = result;
-			vertex.normal = XMFLOAT3(normal[0], normal[1], normal[2]);
-			vertices.push_back(vertex);
+				FbxVector4 controlPoint = controlPoints[pointIndex];
+				vertex.position.x = controlPoint[0];
+				vertex.position.y = controlPoint[1];
+				vertex.position.z = controlPoint[2];
+				vertex.normal = result;
 
-			controlPoint = controlPoints[p3];
-			vertex.position.x = controlPoint[0];
-			vertex.position.y = controlPoint[1];
-			vertex.position.z = controlPoint[2];
-			//vertex.normal = result;
-			vertex.normal = XMFLOAT3(normal[0], normal[1], normal[2]);
-			vertices.push_back(vertex);
+				//FbxVector4 normal = normalElement->GetDirectArray().GetAt(p1 * 3);
+				//vertex.normal = XMFLOAT3(normal[0], normal[1], normal[2]);
+				vertices.push_back(vertex);
 
-			indices.push_back(i*3);
-			indices.push_back(i * 3+1);
-			indices.push_back(i * 3+2);
+				//controlPoint = controlPoints[p2];
+				//vertex.position.x = controlPoint[0];
+				//vertex.position.y = controlPoint[1];
+				//vertex.position.z = controlPoint[2];
+				//vertex.normal = result;
+				////vertex.normal = XMFLOAT3(normal[0], normal[1], normal[2]);
+				////vertices.push_back(vertex);
 
+				//controlPoint = controlPoints[p3];
+				//vertex.position.x = controlPoint[0];
+				//vertex.position.y = controlPoint[1];
+				//vertex.position.z = controlPoint[2];
+				//vertex.normal = result;
+				//vertex.normal = XMFLOAT3(normal[0], normal[1], normal[2]);
+				//vertices.push_back(vertex);
+
+				indices.push_back(i * 3+j);
+				//indices.push_back(i * 3 + 1);
+				//indices.push_back(i * 3 + 2);
+			}
 		}
 
 		MeshData newMesh;
