@@ -15,29 +15,36 @@ namespace graphics
 		FbxVector4* controlPoints = mesh->GetControlPoints();
 		int vertexCount = mesh->GetControlPointsCount();
 
+		int gpcount = mesh->GetPolygonCount();
 
-		for (int i = 0; i < vertexCount; ++i) {
+		for (int i = 0; i < vertexCount; i++)
+		{
 			Vertex vertex;
 			FbxVector4 controlPoint = controlPoints[i];
-			FbxVector4 normal;
-			mesh->GetPolygonVertexNormal(0, i, normal);
 
-			vertex.position.x = static_cast<float>(controlPoint[0]);
-			vertex.position.y = static_cast<float>(controlPoint[1]);
-			vertex.position.z = static_cast<float>(controlPoint[2]);
+			vertex.position.x = controlPoint[0];
+			vertex.position.y = controlPoint[2];
+			vertex.position.z = controlPoint[1];
 
-			vertex.normal.x = normal[0];
-			vertex.normal.y = normal[1];
-			vertex.normal.z = normal[2];
+			XMStoreFloat3(&vertex.normal,  XMVectorSubtract(XMLoadFloat3(&vertex.position), XMVectorSet(0.f,0.f,0.f,0.f)));
 
 			vertices.push_back(vertex);
 		}
+		
+
+		for (int i = 0; i < gpcount; ++i) {
+			int gpsize = mesh->GetPolygonSize(i) - 2; // if 4 = 2 tri, 3 = 1 tri
+			for (int j = 0; j < gpsize; j++)
+			{
+				int vertexIndex[3] = { 0, 2, 1 };
+				for (int k = 0; k < 3; ++k) {
+					int index = mesh->GetPolygonVertex(i, vertexIndex[k]);
+					//std::cout << index;
+					indices.push_back(index);
+					
 
 
-		for (int i = 0; i < mesh->GetPolygonCount(); ++i) {
-			for (int j = 0; j < 3; ++j) {
-				int* index = mesh->GetPolygonVertices();
-				indices.push_back(index[j]);
+				}
 			}
 		}
 
@@ -58,6 +65,8 @@ namespace graphics
 			if (attribute_type == FbxNodeAttribute::eMesh)
 			{
 				FbxMesh* mesh = (FbxMesh*)attribute;
+				FbxGeometryConverter gc{ lSdkManager };
+				mesh = (FbxMesh*)gc.Triangulate(mesh, true);
 				auto newMesh = ProcessMesh(mesh, scene);
 
 				meshes.emplace_back(newMesh);
@@ -101,7 +110,7 @@ namespace graphics
 
 		// Create a new scene so that it can be populated by the imported file.
 		FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
-		lScene->GetGlobalSettings().SetAxisSystem(FbxAxisSystem::EPreDefinedAxisSystem::eDirectX);
+		FbxAxisSystem::MayaYUp.ConvertScene(lScene);
 		// Import the contents of the file into the scene.
 		lImporter->Import(lScene);
 
