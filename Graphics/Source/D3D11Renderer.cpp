@@ -1,85 +1,9 @@
 #include "D3D11Renderer.h"
+#include "FbxLoader.h"
 
 namespace graphics
 {
 	D3D11Renderer::D3D11Renderer() : D3D11AppBase(), m_basicVertexConstantBufferData() {}
-
-	std::vector<MeshData> meshes;
-
-	MeshData ProcessMesh(FbxMesh* mesh, const FbxScene* scene) {
-
-		// Data to fill
-		std::vector<Vertex> vertices;
-		std::vector<uint16_t> indices;
-
-		FbxVector4* controlPoints = mesh->GetControlPoints();
-		int vertexCount = mesh->GetControlPointsCount();
-
-		int gpcount = mesh->GetPolygonCount();
-
-		for (int i = 0; i < vertexCount; i++)
-		{
-			Vertex vertex;
-			FbxVector4 controlPoint = controlPoints[i];
-
-			vertex.position.x = controlPoint[0];
-			vertex.position.y = controlPoint[2];
-			vertex.position.z = controlPoint[1];
-
-			XMStoreFloat3(&vertex.normal,  XMVectorSubtract(XMLoadFloat3(&vertex.position), XMVectorSet(0.f,0.f,0.f,0.f)));
-
-			vertices.push_back(vertex);
-		}
-		
-
-		for (int i = 0; i < gpcount; ++i) {
-			int gpsize = mesh->GetPolygonSize(i) - 2; // if 4 = 2 tri, 3 = 1 tri
-			for (int j = 0; j < gpsize; j++)
-			{
-				int vertexIndex[3] = { 0, 2, 1 };
-				for (int k = 0; k < 3; ++k) {
-					int index = mesh->GetPolygonVertex(i, vertexIndex[k]);
-					//std::cout << index;
-					indices.push_back(index);
-					
-
-
-				}
-			}
-		}
-
-		MeshData newMesh;
-		newMesh.vertices = vertices;
-		newMesh.indices = indices;
-
-		return newMesh;
-	}
-
-	void D3D11Renderer::ProcessNode(FbxNode* node, const FbxScene* scene)
-	{
-		const int num_attributes{ node->GetNodeAttributeCount() };
-		for (int i{ 0 }; i < num_attributes; i++)
-		{
-			FbxNodeAttribute* attribute{ node->GetNodeAttributeByIndex(i) };
-			const FbxNodeAttribute::EType attribute_type{ attribute->GetAttributeType() };
-			if (attribute_type == FbxNodeAttribute::eMesh)
-			{
-				FbxMesh* mesh = (FbxMesh*)attribute;
-				FbxGeometryConverter gc{ lSdkManager };
-				mesh = (FbxMesh*)gc.Triangulate(mesh, true);
-				auto newMesh = ProcessMesh(mesh, scene);
-
-				meshes.emplace_back(newMesh);
-			}
-		}
-		if (const int numChild = node->GetChildCount())
-		{
-			for (int i = 0; i < numChild; i++) {
-				ProcessNode(node->GetChild(i), scene);
-			}
-		}
-
-	}
 
 	bool D3D11Renderer::Initialize()
 	{
@@ -87,46 +11,12 @@ namespace graphics
 		if (!D3D11AppBase::Initialize())
 			return false;
 
-
-		//가져오는 순서 Importer 초기화 - Importer에서 Scene 가져오기 - 이후 모델 불러올 수 있다.
-		const char* lFilename = "d:/zelda.fbx";
-
-		// Initialize the SDK manager. This object handles memory management.
-		lSdkManager = FbxManager::Create();
-
-		// Create the IO settings object.
-		FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
-		lSdkManager->SetIOSettings(ios);
-
-		// Create an importer using the SDK manager.
-		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
-
-		// Use the first argument as the filename for the importer.
-		if (!lImporter->Initialize(lFilename, -1, lSdkManager->GetIOSettings())) {
-			printf("Call to FbxImporter::Initialize() failed.\n");
-			printf("Error returned: %s\n\n", lImporter->GetStatus().GetErrorString());
-			exit(-1);
+		FbxLoader fbx_context;
+		
+		if (!fbx_context.Initialize())
+		{
+			return false;
 		}
-
-		// Create a new scene so that it can be populated by the imported file.
-		FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
-		FbxAxisSystem::MayaYUp.ConvertScene(lScene);
-		// Import the contents of the file into the scene.
-		lImporter->Import(lScene);
-
-		// The file is imported, so get rid of the importer.
-		lImporter->Destroy();
-
-		FbxNode* lRootNode = lScene->GetRootNode();
-		if (lRootNode) {
-			ProcessNode(lRootNode, lScene);
-		}
-		// Destroy the SDK manager and all the other objects it was handling.
-		lSdkManager->Destroy();
-
-
-
-
 
 		//
 		D3D11AppBase::CreateTexture("D:\\Graphics\\wall.jpg", m_texture,
@@ -178,7 +68,7 @@ namespace graphics
 		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData,
 			pixelConstantBuffer);
 
-		for (const auto& meshData : meshes) {
+		for (const auto& meshData : fbx_context.meshes) {
 			auto newMesh = std::make_shared<Mesh>();
 			D3D11AppBase::CreateVertexBuffer(meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
@@ -223,7 +113,7 @@ namespace graphics
 		std::vector<Vertex> normalVertices;
 		std::vector<uint16_t> normalIndices;
 		size_t offset = 0;
-		for (const auto& meshData : meshes) {
+		for (const auto& meshData : fbx_context.meshes) {
 			for (size_t i = 0; i < meshData.vertices.size(); i++) {
 
 				auto v = meshData.vertices[i];
@@ -433,7 +323,7 @@ namespace graphics
 
 			ImGui::SliderFloat3("m_modelTranslation", &m_modelTranslation.x, -2.0f, 2.0f);
 			ImGui::SliderFloat3("m_modelRotation(Rad)", &m_modelRotation.x, -3.14f, 3.14f);
-			ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.1f, 2.0f);
+			ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.01f, 2.0f);
 
 			ImGui::SliderFloat("m_viewRot", &m_viewRot, -3.14f, 3.14f);
 

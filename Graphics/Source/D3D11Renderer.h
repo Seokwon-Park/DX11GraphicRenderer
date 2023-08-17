@@ -74,7 +74,6 @@ namespace graphics
 
 	protected:
 		std::vector<std::shared_ptr<Mesh>> m_meshes;
-		FbxManager* lSdkManager;
 
 		//Shaders
 		//Basic
