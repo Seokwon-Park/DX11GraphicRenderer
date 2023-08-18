@@ -18,6 +18,8 @@ namespace graphics
 			return false;
 		}
 
+		//Fbx SDK -> º¸·ù
+
 		//
 		D3D11AppBase::CreateTexture("D:\\Graphics\\wall.jpg", m_texture,
 			m_textureResourceView);

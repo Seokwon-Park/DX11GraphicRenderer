@@ -8,10 +8,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 namespace graphics
 {
 	// RegisterClassEx()에서 멤버 함수를 직접 등록할 수가 없기 때문에
-	// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리할 수 있도록 한다.
+	// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리
 	D3D11AppBase* g_appBase = nullptr;
 
-	// 너비 높이 설정
+	// 렌더링 윈도우 너비 높이 설정
 	const int WIDTH = 1280;
 	const int HEIHGT = 960;
 
@@ -231,8 +231,11 @@ namespace graphics
 		const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
 
 		// 여기서 생성하는 것들
-		// m_d3dDevice, m_d3dContext, m_swapChain,
-		// m_renderTargetView, m_screenViewport, m_rasterizerSate
+		// m_d3dDevice, m_d3dContext, 
+		// m_swapChain,
+		// m_renderTargetView,
+		// m_screenViewport,
+		// m_rasterizerSate
 
 		// 1. m_d3dDevice와 m_d3dContext 생성
 		UINT createDeviceFlags = 0;

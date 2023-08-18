@@ -15,8 +15,8 @@ namespace graphics
 		FbxLoader();
 		bool Initialize();
 		void release();
-		void ProcessNode(FbxNode* node, const FbxScene* scene);
-		MeshData ProcessMesh(FbxMesh* mesh, const FbxScene* scene);
+		void ProcessNode(FbxNode* node, XMMATRIX tr);
+		MeshData ProcessMesh(FbxMesh* mesh);
 		std::vector<MeshData> meshes;
 	protected:
 	private:
