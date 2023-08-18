@@ -9,11 +9,8 @@ namespace graphics
 
 	}//anonymous namespace
 
-	bool FbxLoader::Initialize()
+	void FbxLoader::Load(const char* filename)
 	{
-		//가져오는 순서 Importer 초기화 - Importer에서 Scene 가져오기 - 이후 모델 불러올 수 있다.
-		const char* lFilename = "d:/zelda.fbx";
-
 		// Initialize the SDK manager. This object handles memory management.
 		m_fbxManager = FbxManager::Create();
 
@@ -25,7 +22,7 @@ namespace graphics
 		m_fbxImporter = FbxImporter::Create(m_fbxManager, "");
 
 		// Use the first argument as the filename for the importer.
-		if (!m_fbxImporter->Initialize(lFilename, -1, m_fbxManager->GetIOSettings())) {
+		if (!m_fbxImporter->Initialize(filename , -1, m_fbxManager->GetIOSettings())) {
 			printf("Call to FbxImporter::Initialize() failed.\n");
 			printf("Error returned: %s\n\n", m_fbxImporter->GetStatus().GetErrorString());
 			exit(-1);
@@ -46,14 +43,8 @@ namespace graphics
 		}
 		// Destroy the SDK manager and all the other objects it was handling.
 		m_fbxManager->Destroy();
-
-		return true;
 	}
 
-	void FbxLoader::release()
-	{
-
-	}
 
 	void FbxLoader::ProcessNode(FbxNode* node, XMMATRIX tr)
 	{
@@ -67,7 +58,6 @@ namespace graphics
 
 		m = XMMatrixTranspose(m) * tr;
 
-
 		const int num_attributes{ node->GetNodeAttributeCount() };
 		for (int i{ 0 }; i < num_attributes; i++)
 		{
@@ -77,8 +67,8 @@ namespace graphics
 			{
 				FbxMesh* mesh = node->GetMesh();
 
-				//FbxGeometryConverter gc{ m_fbxManager };
-				//mesh = (FbxMesh*)gc.Triangulate(mesh, true);
+				FbxGeometryConverter gc{ m_fbxManager };
+				mesh = (FbxMesh*)gc.Triangulate(mesh, true);
 
 				auto newMesh = ProcessMesh(mesh);
 
@@ -149,6 +139,12 @@ namespace graphics
 				vertex.position.z = (float)controlPoints[iControlPointIndex].mData[2];
 				
 				FbxGeometryElementNormal* normalElement = mesh->GetElementNormal(0);
+				for (int k = 0; k < 100; k++)
+				{
+					std::cout << normalElement->GetDirectArray().GetAt(k)[0]
+						<< " " << normalElement->GetDirectArray().GetAt(k)[1]
+						<< " " << normalElement->GetDirectArray().GetAt(k)[2] << "\n";
+				}
 				vertex.normal.x = normalElement->GetDirectArray().GetAt(i)[0];
 				vertex.normal.y = normalElement->GetDirectArray().GetAt(i)[1];
 				vertex.normal.z = -normalElement->GetDirectArray().GetAt(i)[2];

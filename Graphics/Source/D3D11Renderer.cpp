@@ -1,5 +1,4 @@
 #include "D3D11Renderer.h"
-#include "FbxLoader.h"
 
 namespace graphics
 {
@@ -10,13 +9,6 @@ namespace graphics
 		// Initialize Essentials
 		if (!D3D11AppBase::Initialize())
 			return false;
-
-		FbxLoader fbx_context;
-		
-		if (!fbx_context.Initialize())
-		{
-			return false;
-		}
 
 		//Fbx SDK -> º¸·ù
 
@@ -39,13 +31,14 @@ namespace graphics
 		// Create the Sample State
 		m_d3dDevice->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
 
-		//MeshData meshData = Geometry::MakeSphere(1.f, 3, 3);
+		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 3, 3) };
+		std::vector<MeshData> meshes = Geometry::ReadModelFromFile("d:/mak3.fbx");
 
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
 		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 25, 25);
 		//MeshData meshData = Geometry::MakeSquare();
-		//MeshData meshData = Geometry::MakeCube(1,1,1,1);
+		//std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1,1) };
 
 		//m_mesh = std::make_shared<Mesh>();
 
@@ -70,7 +63,7 @@ namespace graphics
 		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData,
 			pixelConstantBuffer);
 
-		for (const auto& meshData : fbx_context.meshes) {
+		for (const auto& meshData : meshes) {
 			auto newMesh = std::make_shared<Mesh>();
 			D3D11AppBase::CreateVertexBuffer(meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
@@ -115,7 +108,7 @@ namespace graphics
 		std::vector<Vertex> normalVertices;
 		std::vector<uint16_t> normalIndices;
 		size_t offset = 0;
-		for (const auto& meshData : fbx_context.meshes) {
+		for (const auto& meshData : meshes) {
 			for (size_t i = 0; i < meshData.vertices.size(); i++) {
 
 				auto v = meshData.vertices[i];

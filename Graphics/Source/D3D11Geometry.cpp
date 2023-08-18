@@ -1,4 +1,5 @@
 #include "CommonHeaders.h"
+#include "FbxLoader.h"
 
 //LeftHanded CW
 namespace graphics
@@ -193,9 +194,9 @@ namespace graphics
 				// x-y 평면에서 시작점을 x 방향으로 이동
 				// v.position = stackStartPoint + Vector3(i * dx, 0.0f, 0.0f);
 				XMStoreFloat3(&v.position, XMVector3Transform(XMLoadFloat3(&stackStartPoint), XMMatrixTranslation(dx * float(i), dy * float(j), 0.0f)));
-				v.position.z = sin(i * dx * 10.0f) * 0.1f;
+				// v.position.z = sin(i * dx * 10.0f) * 0.1f;
 				// 시점을 향하는 방향
-				v.normal = XMFLOAT3(cos(i * dx * 10.0f), 0.0f, -1.0f);
+				//v.normal = XMFLOAT3(cos(i * dx * 10.0f), 0.0f, -1.0f);
 				// v.texcoord = Vector2(stackStartPoint.x + i * dx,
 				// stackStartPoint.y);
 				v.texcoord = XMFLOAT2(float(i) / numSlices, 1.0f - float(j) / numStacks);//uv좌표는 y축이 반대!!
@@ -404,8 +405,8 @@ namespace graphics
 			ProjectVertex(v5);
 
 			// 모든 버텍스 새로 추가
-			newMesh.vertices.push_back(v0); // 1
-			newMesh.vertices.push_back(v4); // 2
+			newMesh.vertices.push_back(v0); 
+			newMesh.vertices.push_back(v4); 
 			newMesh.vertices.push_back(v3);
 
 			newMesh.vertices.push_back(v4);
@@ -430,6 +431,15 @@ namespace graphics
 		return newMesh;
 	}
 
+	//모델 로더
+	std::vector<MeshData> Geometry::ReadModelFromFile(std::string filename)
+	{
+		FbxLoader fbx_context;
+
+		fbx_context.Load(filename.c_str());
+
+		return fbx_context.meshes;
+	}
 
 
 }

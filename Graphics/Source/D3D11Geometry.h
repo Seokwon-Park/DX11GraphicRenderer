@@ -44,5 +44,6 @@ namespace graphics {
         //static MeshData MakeTetrahedron();
         //static MeshData MakeIcosahedron();
         static MeshData SubdivideToSphere(const float radius, MeshData meshData);
+        static std::vector<MeshData> ReadModelFromFile(std::string filename);
     };
 } // namespace hlab
