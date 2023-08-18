@@ -32,7 +32,8 @@ namespace graphics
 		m_d3dDevice->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
 
 		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 3, 3) };
-		std::vector<MeshData> meshes = Geometry::ReadModelFromFile("d:/mak3.fbx");
+		std::vector<MeshData> meshes = { Geometry::MakeSquare(2.f, Axis::x, Axis::y) };
+		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("d:/mak3.fbx");
 
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);

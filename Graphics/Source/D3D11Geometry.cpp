@@ -6,27 +6,69 @@ namespace graphics
 {
 	using namespace DirectX;
 
-	MeshData Geometry::MakeSquare() {
+	MeshData Geometry::MakeSquare(float length, int axis1, int axis2) {
 		std::vector<XMFLOAT3> positions;
 		std::vector<XMFLOAT3> normals;
 		std::vector<XMFLOAT2> texcoords; // 텍스춰 좌표
 
 		const float scale = 1.0f;
 
-		// 앞면
-		positions.push_back(XMFLOAT3(-1.0f, 1.0f, 0.0f));
-		positions.push_back(XMFLOAT3(1.0f, 1.0f, 0.0f));
-		positions.push_back(XMFLOAT3(1.0f, -1.0f, 0.0f));
-		positions.push_back(XMFLOAT3(-1.0f, -1.0f, 0.0f));
+		float xyz[3] = { 0.f, 0.f, 0.f };
+		xyz[axis1] = 1.0f * length;
+		xyz[axis2] = 1.0f * length;
 
-		// Normals CW!! 
-		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
-		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
-		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
-		normals.push_back(XMFLOAT3(0.0f, 0.0f, -1.0f));
+		float vec[3] = { 0.f, 0.f, 0.f }; 
+		vec[axis1] = 1.0f;
+		XMVECTOR v1 = XMVectorSet( vec[0], vec[1], vec[2], 0.f);
+		vec[axis1] = 0.f;
+		vec[axis2] = 1.0f;
+		XMVECTOR v2 = XMVectorSet( vec[0], vec[1], vec[2], 0.f);
+
+		 
+		XMFLOAT3 normal;
+		XMStoreFloat3(&normal, XMVector3Cross(v2, v1));
+		
+		XMFLOAT2 test[4]
+		{
+			XMFLOAT2(-1.0f, 1.0f),
+			XMFLOAT2(1.0f, 1.0f),
+			XMFLOAT2(1.0f, -1.0f),
+			XMFLOAT2(-1.0f, -1.0f)
+		}; 
+
+		for (int i = 0; i < 4; i++)
+		{
+			float xyz_copy[3] = { xyz[0], xyz[1], xyz[2] };
+			// 앞면
+			xyz_copy[axis1] *= test[i].x;
+			xyz_copy[axis2] *= test[i].y;
+			XMFLOAT3 temp = XMFLOAT3(xyz_copy[0], xyz_copy[1], xyz_copy[2]);
+			positions.push_back(temp);
+
+			// 법선
+			normals.push_back(normal);
+		}
+
+		for (int i = 0; i < 4; i++)
+		{
+			float xyz_copy[3] = { xyz[0], xyz[1], xyz[2] };
+			// 앞면
+			xyz_copy[axis1] *= test[i].x;
+			xyz_copy[axis2] *= test[i].y;
+			XMFLOAT3 temp = XMFLOAT3(xyz_copy[0], xyz_copy[1], xyz_copy[2]);
+			positions.push_back(temp);
+
+			normal = XMFLOAT3(-normal.x, -normal.y, -normal.z);
+			// 법선
+			normals.push_back(normal);
+		}
 
 		// Texture Coordinates (Direct3D 9)
 		// https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates
+		texcoords.push_back(XMFLOAT2(0.0f, 0.0f));
+		texcoords.push_back(XMFLOAT2(1.0f, 0.0f));
+		texcoords.push_back(XMFLOAT2(1.0f, 1.0f));
+		texcoords.push_back(XMFLOAT2(0.0f, 1.0f));
 		texcoords.push_back(XMFLOAT2(0.0f, 0.0f));
 		texcoords.push_back(XMFLOAT2(1.0f, 0.0f));
 		texcoords.push_back(XMFLOAT2(1.0f, 1.0f));
@@ -44,9 +86,15 @@ namespace graphics
 
 			meshData.vertices.push_back(v);
 		}
-		meshData.indices = {
-			0, 1, 2, 0, 2, 3, // 앞면
-		};
+
+		for (int i = 0; i < 4; i++)
+		{
+			int vertexIdx[3] = { 0, i+1, i+2 };
+			for (int v = 0; v < 3; v++)
+			{
+				meshData.indices.push_back(vertexIdx[v]);
+			}
+		}
 
 		return meshData;
 	}

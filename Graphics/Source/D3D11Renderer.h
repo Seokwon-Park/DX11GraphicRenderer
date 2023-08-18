@@ -70,8 +70,6 @@ namespace graphics
 		virtual void Update(float dt) override;
 		virtual void Render() override;
 
-		void ProcessNode(FbxNode* node, const FbxScene* scene);
-
 	protected:
 		std::vector<std::shared_ptr<Mesh>> m_meshes;
 

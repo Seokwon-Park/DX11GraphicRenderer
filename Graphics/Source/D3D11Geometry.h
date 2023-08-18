@@ -13,6 +13,16 @@ namespace graphics {
         XMFLOAT2 texcoord;
     };
 
+    struct Axis
+    {
+        enum :int
+        {
+            x,
+            y,
+            z = 2
+        };
+    };
+
     // Mesh Data
     struct MeshData {
         std::vector<Vertex> vertices;
@@ -33,7 +43,7 @@ namespace graphics {
     public:
         //static std::vector<MeshData> ReadFromFile(std::string basePath,
         //    std::string filename);
-        static MeshData MakeSquare();
+        static MeshData MakeSquare(float length, int axis1 = Axis::x, int axis2 = Axis::y);
         static MeshData MakeCube(float width, float height, float depth, float scale);
         static MeshData MakeGrid(const float width, const float height,
             const int numSlices, const int numStacks);
