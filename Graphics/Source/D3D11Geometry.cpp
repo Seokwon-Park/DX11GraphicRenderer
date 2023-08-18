@@ -49,19 +49,6 @@ namespace graphics
 			normals.push_back(normal);
 		}
 
-		for (int i = 0; i < 4; i++)
-		{
-			float xyz_copy[3] = { xyz[0], xyz[1], xyz[2] };
-			// 앞면
-			xyz_copy[axis1] *= test[i].x;
-			xyz_copy[axis2] *= test[i].y;
-			XMFLOAT3 temp = XMFLOAT3(xyz_copy[0], xyz_copy[1], xyz_copy[2]);
-			positions.push_back(temp);
-
-			normal = XMFLOAT3(-normal.x, -normal.y, -normal.z);
-			// 법선
-			normals.push_back(normal);
-		}
 
 		// Texture Coordinates (Direct3D 9)
 		// https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates
