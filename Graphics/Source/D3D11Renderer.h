@@ -21,12 +21,12 @@ namespace graphics
 
 	// 재질
 	struct Material {
-		XMFLOAT3 ambient = XMFLOAT3(0.1f, 0.1f, 0.1f);  // 12byte
-		float shininess = 1.0f;							// 4byte
-		XMFLOAT3 diffuse = XMFLOAT3(0.5f, 0.5f, 0.5f);  // 12byte
+		XMFLOAT3 ambient = XMFLOAT3(0.0f, 0.0f, 0.0f);  // 12byte
+		float shininess = 256.0f;							// 4byte
+		XMFLOAT3 diffuse = XMFLOAT3(0.0f, 0.0f, 0.0f);  // 12byte
 		float pad1;										// 4byte
-		XMFLOAT3 specular = XMFLOAT3(0.5f, 0.5f, .5f);	// 12byte
-		float pod2;										// 4byte
+		XMFLOAT3 specular = XMFLOAT3(1.f, 1.f, 1.f);	// 12byte
+		float pad2;										// 4byte
 	};
 
 	// 조명
@@ -37,13 +37,13 @@ namespace graphics
 		XMFLOAT3 direction = XMFLOAT3(0.f, 0.f, 1.f);	// 12byte
 		float fallOffEnd = 10.0f;						// 4byte
 		XMFLOAT3 strength = XMFLOAT3(1.f, 1.f, 1.f);	// 12byte
-		float spotPower = 1.0f;							// 4byte
+		float spotPower = 100.0f;							// 4byte
 	};
 
 	// Pixel셰이더 상수
 	struct BasicPixelConstantBuffer {
 		XMFLOAT3 eyeWorld;        // 12
-		bool useTexture;		  // 4 bool이지만 4라고함
+		bool useTexture;		  // 4  bool이지만 4
 		Material material;		  // 48 16*3
 		Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
 		XMFLOAT3 rimColor = XMFLOAT3(1.f, 1.f, 1.f); // 12
@@ -117,14 +117,14 @@ namespace graphics
 		//Field of View
 		float m_projFovAngleY = 70.0f;
 		float m_nearZ = 0.01f;
-		float m_farZ = 10.0f;
+		float m_farZ = 100.0f;
 		float m_aspect = D3D11AppBase::GetAspectRatio();		
 
 		//Light
 		int m_lightType = 0;
 		Light m_lightFromGUI;
-		float m_materialDiffuse = .5f;
-		float m_materialSpecular = .7f;
+		float m_materialDiffuse = .3f;
+		float m_materialSpecular = 1.0f;
 		
 		//Normal
 		std::shared_ptr<Mesh> m_normalLines;

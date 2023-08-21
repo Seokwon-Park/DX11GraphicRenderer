@@ -89,7 +89,7 @@ namespace graphics
 
 		std::vector<XMFLOAT3> positions;
 		std::vector<XMFLOAT3> normals;
-		std::vector<XMFLOAT2> texcoords; // 텍스춰 좌표
+		std::vector<XMFLOAT2> texcoords;
 
 		// 윗면
 		positions.push_back(XMFLOAT3(-1.0f, 1.0f, -1.0f));
@@ -395,13 +395,12 @@ namespace graphics
 			XMStoreFloat3(&v.normal, (XMVector3Normalize(XMLoadFloat3(&v.normal))));
 			XMStoreFloat3(&v.position, XMVectorScale(XMLoadFloat3(&v.normal), radius));
 
-			// 주의: 텍스춰가 이음매에서 깨집니다.
 			// atan vs atan2
 			// https://stackoverflow.com/questions/283406/what-is-the-difference-between-atan-and-atan2-in-c
-			// const float theta = atan2f(v.position.z, v.position.x);
-			// const float phi = acosf(v.position.y / radius);
-			// v.texcoord.x = theta / XM_2PI;
-			// v.texcoord.y = phi / XM_PI;
+			const float theta = atan2f(v.position.z, v.position.x);
+			const float phi = acosf(v.position.y / radius);
+			v.texcoord.x = theta / XM_2PI;
+			v.texcoord.y = phi / XM_PI;
 		};
 
 		// 버텍스가 중복되는 구조로 구현
@@ -463,7 +462,7 @@ namespace graphics
 		return newMesh;
 	}
 
-	//모델 로더
+	//모델 로드
 	std::vector<MeshData> Geometry::ReadModelFromFile(std::string filename)
 	{
 		std::vector<MeshData> meshes;

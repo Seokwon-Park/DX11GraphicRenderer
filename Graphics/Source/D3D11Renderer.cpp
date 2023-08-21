@@ -12,11 +12,6 @@ namespace graphics
 
 		//Fbx SDK -> 보류
 
-		//
-		D3D11AppBase::CreateTexture("D:\\Graphics\\wall.jpg", m_texture,
-			m_textureResourceView);
-
-
 		// Texture sampler 만들기
 		D3D11_SAMPLER_DESC samplerDesc;
 		ZeroMemory(&samplerDesc, sizeof(samplerDesc));
@@ -31,9 +26,20 @@ namespace graphics
 		// Create the Sample State
 		m_d3dDevice->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
 
-		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 3, 3) };
-		//std::vector<MeshData> meshes = { Geometry::MakeSquare(2.f, Axis::x, Axis::y) };
-		std::vector<MeshData> meshes = Geometry::ReadModelFromFile("d:/stanford_dragon.stl");
+		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 4, 4) };
+		//for (auto& meshData : meshes) {
+		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
+		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
+		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
+		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
+
+		//}
+
+
+		std::vector<MeshData> meshes = { Geometry::MakeSquare(2.f, Axis::x, Axis::y) };
+		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("c:/zelda/zeldaPosed001.fbx");
+		
+		meshes[0].textureFilename = "D:/toon.png";
 
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
@@ -53,14 +59,9 @@ namespace graphics
 		m_basicVertexConstantBufferData.view = XMMATRIX();
 		m_basicVertexConstantBufferData.projection = XMMATRIX();
 
-
-
-		//D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData, m_mesh->vertexConstantBuffer);
-
-		//D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData, m_mesh->pixelConstantBuffer);
-
 		ComPtr<ID3D11Buffer> vertexConstantBuffer;
 		ComPtr<ID3D11Buffer> pixelConstantBuffer;
+
 		D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData,
 			vertexConstantBuffer);
 		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData,
@@ -260,14 +261,8 @@ namespace graphics
 		};
 		m_d3dContext->VSSetConstantBuffers(0, 1, pptr); */
 
-		m_d3dContext->VSSetConstantBuffers(0, 1, m_meshes[0]->vertexConstantBuffer.GetAddressOf());
-
-		ID3D11ShaderResourceView* pixelResources[1] = { m_textureResourceView.Get() };
-		//좀 괜찮은 쉐이더를 짤때는 텍스처 여러장을 사용하기 때문에 배열 형태로
-		m_d3dContext->PSSetShaderResources(0, 1, pixelResources);
 		m_d3dContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
-		m_d3dContext->PSSetConstantBuffers(0, 1, m_meshes[0]->pixelConstantBuffer.GetAddressOf());
 		m_d3dContext->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 
 		if (m_drawAsWire)
@@ -300,7 +295,6 @@ namespace graphics
 		}
 
 		if (m_drawNormals) {
-			// TODO: 여기에 필요한 내용들 작성
 			m_d3dContext->VSSetShader(m_normalVertexShader.Get(), 0, 0);
 
 			m_d3dContext->VSSetConstantBuffers(1, 1, m_normalLines->vertexConstantBuffer.GetAddressOf());
@@ -352,9 +346,9 @@ namespace graphics
 			//ImGui::SliderFloat3("m_viewEyeDir", &m_viewEyeDir.x, -4.0f, 4.0f);
 			//ImGui::SliderFloat3("m_viewUp", &m_viewUp.x, -2.0f, 2.0f);
 
-			ImGui::SliderFloat("m_projFovAngleY(Deg)", &m_projFovAngleY, 10.0f, 180.0f);
-			ImGui::SliderFloat("m_nearZ", &m_nearZ, 0.01f, m_farZ - 0.001f);
-			ImGui::SliderFloat("m_farZ", &m_farZ, m_nearZ + 0.01f, 10.0f);
+			//ImGui::SliderFloat("m_projFovAngleY(Deg)", &m_projFovAngleY, 10.0f, 180.0f);
+			//ImGui::SliderFloat("m_nearZ", &m_nearZ, 0.01f, m_farZ - 0.001f);
+			//ImGui::SliderFloat("m_farZ", &m_farZ, m_nearZ + 0.01f, 10.0f);
 			ImGui::TreePop();
 		}
 

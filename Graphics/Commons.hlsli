@@ -47,16 +47,17 @@ struct VertexShaderInput
 {
     float3 position : POSITION; //모델 좌표계의 위치 position
     float3 normal : NORMAL; // 모델 좌표계의 normal    
-    float2 uv : TEXCOORD0; // <- 다음 예제에서 사용
+    float2 uv : TEXCOORD0; // 모델 좌표계의 texcoord
     
-    // float3 color : COLOR0; <- 불필요 (쉐이딩)
+    // float3 color : COLOR0; 
 };
 
 // PSInput(VSOutput)
 struct PixelShaderInput
 {
     float4 posProj : SV_POSITION; // Screen position
-    float3 posWorld : POSITION; // World position (조명 계산에 사용)
+    float3 posModel : POSITION0; // Model position
+    float3 posWorld : POSITION1; // World position (조명 계산에 사용)
     float3 normalWorld : NORMAL;
     float2 uv : TEXCOORD;
     float3 color : COLOR;
