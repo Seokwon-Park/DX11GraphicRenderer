@@ -1,12 +1,21 @@
 #pragma once
+
+#define USE_FBX_SDK 0
+#define USE_ASSIMP 1
+
 #include <iostream>
 #include <memory>
 #include <vector>
 #include <tuple>
+#define NOMINMAX
+//#ifdef max
+//    #undef max
+//#endif
+//#ifdef min
+//    #undef min
+//#endif
 #include <windows.h>
 #include <wrl.h> 
-
-#include <fbxsdk.h>
 
 //Imgui.h>
 #include <imgui.h>
@@ -21,21 +30,13 @@
 
 #include "D3D11Geometry.h"
 
-#if _DEBUG
-#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\debug\\libfbxsdk-md.lib")
-#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\debug\\libxml2-md.lib")
-#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\debug\\zlib-md.lib")
-#else
-#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\release\\libfbxsdk-md.lib")
-#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\release\\libxml2-md.lib")
-#pragma comment (lib, "C:\\Program Files\\Autodesk\\FBX\\FBX SDK\\2020.2\\lib\\vs2019\\x64\\release\\zlib-md.lib")
-#endif
 
-#ifndef ThrowIfFailed
-#define ThrowIfFailed(x)                                                    \
-    {                                                                       \
-        HRESULT hr__ = (x);                                                 \
-        std::wstring wfn = AnsiToWString(__FILE__);                         \
-        if(FAILED(hr__)) { throw DxException(hr__, L#x, wfn, __LINE__); }   \
+
+inline void ThrowIfFailed(HRESULT hr)
+{
+    if (FAILED(hr))
+    {
+        // Set a breakpoint on this line to catch Win32 API errors.
+        throw std::exception();
     }
-#endif
+}

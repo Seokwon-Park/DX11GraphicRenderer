@@ -46,6 +46,11 @@ namespace graphics
 		bool useTexture;		  // 4 bool이지만 4라고함
 		Material material;		  // 48 16*3
 		Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
+		XMFLOAT3 rimColor = XMFLOAT3(1.f, 1.f, 1.f); // 12
+		float rimPower; // 4
+		float rimStrength = 0.0f; // 4
+		bool useSmoothstep = false; // 4
+		float dummy[2]; // 8
 	};
 
 	static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,
@@ -101,7 +106,7 @@ namespace graphics
 		// Transforms
 		XMFLOAT3 m_modelTranslation = XMFLOAT3();
 		XMFLOAT3 m_modelRotation = XMFLOAT3();
-		XMFLOAT3 m_modelScaling = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		XMFLOAT3 m_modelScaling = XMFLOAT3(1.f,1.f,1.f);
 
 		//XMFLOAT3 m_viewEyePos= XMFLOAT3(0.0f,0.0f,-2.0f);
 		//XMFLOAT3 m_viewEyeDir= XMFLOAT3(0.0f, 0.0f, 1.0f);
@@ -123,7 +128,7 @@ namespace graphics
 		
 		//Normal
 		std::shared_ptr<Mesh> m_normalLines;
-		bool m_drawNormals = true;
+		bool m_drawNormals = false;
 		bool m_dirtyFlag = false;
 	};
 } // namespace graphics

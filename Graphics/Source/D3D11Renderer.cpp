@@ -32,8 +32,8 @@ namespace graphics
 		m_d3dDevice->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
 
 		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 3, 3) };
-		std::vector<MeshData> meshes = { Geometry::MakeSquare(2.f, Axis::x, Axis::y) };
-		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("d:/mak3.fbx");
+		//std::vector<MeshData> meshes = { Geometry::MakeSquare(2.f, Axis::x, Axis::y) };
+		std::vector<MeshData> meshes = Geometry::ReadModelFromFile("d:/stanford_dragon.stl");
 
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
@@ -53,6 +53,8 @@ namespace graphics
 		m_basicVertexConstantBufferData.view = XMMATRIX();
 		m_basicVertexConstantBufferData.projection = XMMATRIX();
 
+
+
 		//D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData, m_mesh->vertexConstantBuffer);
 
 		//D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData, m_mesh->pixelConstantBuffer);
@@ -69,6 +71,13 @@ namespace graphics
 			D3D11AppBase::CreateVertexBuffer(meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
 			D3D11AppBase::CreateIndexBuffer(meshData.indices, newMesh->indexBuffer);
+
+			if (!meshData.textureFilename.empty()) {
+
+				std::cout << meshData.textureFilename << '\n';
+				D3D11AppBase::CreateTexture(meshData.textureFilename, newMesh->texture,
+					newMesh->textureResourceView);
+			}
 
 			newMesh->vertexConstantBuffer = vertexConstantBuffer;
 			newMesh->pixelConstantBuffer = pixelConstantBuffer;
@@ -107,7 +116,7 @@ namespace graphics
 		// Mesh *m_normalLines = new Mesh();
 
 		std::vector<Vertex> normalVertices;
-		std::vector<uint16_t> normalIndices;
+		std::vector<uint32_t> normalIndices;
 		size_t offset = 0;
 		for (const auto& meshData : meshes) {
 			for (size_t i = 0; i < meshData.vertices.size(); i++) {
@@ -211,16 +220,7 @@ namespace graphics
 
 		// 노멀 벡터 그리기
 		if (m_drawNormals && m_dirtyFlag) {
-			// TODO: 여기에 필요한 내용들 작성
-			//m_normalVertexConstantBufferData.model =
-			//    m_BasicVertexConstantBufferData.model;
-			//m_normalVertexConstantBufferData.view =
-			//    m_BasicVertexConstantBufferData.view;
-			//m_normalVertexConstantBufferData.projection =
-			//    m_BasicVertexConstantBufferData.projection;
-			//m_normalVertexConstantBufferData.invTranspose =
-			//    m_BasicVertexConstantBufferData.invTranspose;
-
+			
 			D3D11AppBase::UpdateBuffer(m_normalVertexConstantBufferData,
 				m_normalLines->vertexConstantBuffer);
 
@@ -246,7 +246,7 @@ namespace graphics
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// 비교: Depth Buffer를 사용하지 않는 경우
-		// m_context->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), nullptr);
+		// m_d3dContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), nullptr);
 		m_d3dContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 
 		m_d3dContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
@@ -258,7 +258,7 @@ namespace graphics
 		ID3D11Buffer *pptr[1] = {
 			m_constantBuffer.Get(),
 		};
-		m_context->VSSetConstantBuffers(0, 1, pptr); */
+		m_d3dContext->VSSetConstantBuffers(0, 1, pptr); */
 
 		m_d3dContext->VSSetConstantBuffers(0, 1, m_meshes[0]->vertexConstantBuffer.GetAddressOf());
 
@@ -275,14 +275,29 @@ namespace graphics
 		else
 			m_d3dContext->RSSetState(m_solidRasterizerState.Get());
 
-		// 버텍스/인덱스 버퍼 설정
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
-		m_d3dContext->IASetInputLayout(m_colorInputLayout.Get());
-		m_d3dContext->IASetVertexBuffers(0, 1, m_meshes[0]->vertexBuffer.GetAddressOf(), &stride, &offset);
-		m_d3dContext->IASetIndexBuffer(m_meshes[0]->indexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-		m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_d3dContext->DrawIndexed(m_meshes[0]->m_indexCount, 0, 0);
+
+		// 버텍스/인덱스 버퍼 설정
+		for (const auto& mesh : m_meshes) {
+			m_d3dContext->VSSetConstantBuffers(
+				0, 1, mesh->vertexConstantBuffer.GetAddressOf());
+
+			m_d3dContext->PSSetShaderResources(
+				0, 1, mesh->textureResourceView.GetAddressOf());
+
+			m_d3dContext->PSSetConstantBuffers(
+				0, 1, mesh->pixelConstantBuffer.GetAddressOf());
+
+			m_d3dContext->IASetInputLayout(m_colorInputLayout.Get());
+			m_d3dContext->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
+				&stride, &offset);
+			m_d3dContext->IASetIndexBuffer(mesh->indexBuffer.Get(),
+				DXGI_FORMAT_R32_UINT, 0);
+			m_d3dContext->IASetPrimitiveTopology(
+				D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			m_d3dContext->DrawIndexed(mesh->m_indexCount, 0, 0);
+		}
 
 		if (m_drawNormals) {
 			// TODO: 여기에 필요한 내용들 작성
@@ -291,12 +306,12 @@ namespace graphics
 			m_d3dContext->VSSetConstantBuffers(1, 1, m_normalLines->vertexConstantBuffer.GetAddressOf());
 
 			m_d3dContext->PSSetShader(m_normalPixelShader.Get(), 0, 0);
-			// m_context->IASetInputLayout(m_basicInputLayout.Get());
+			// m_d3dContext->IASetInputLayout(m_basicInputLayout.Get());
 			m_d3dContext->IASetVertexBuffers(
 				0, 1, m_normalLines->vertexBuffer.GetAddressOf(), &stride,
 				&offset);
 			m_d3dContext->IASetIndexBuffer(m_normalLines->indexBuffer.Get(),
-				DXGI_FORMAT_R16_UINT, 0);
+				DXGI_FORMAT_R32_UINT, 0);
 
 			m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
@@ -305,6 +320,16 @@ namespace graphics
 
 	void D3D11Renderer::UpdateGUI()
 	{
+		ImGui::SliderFloat("Rim Strength",
+			&m_basicPixelConstantBufferData.rimStrength, 0.0f,
+			10.0f);
+		ImGui::Checkbox("Use Smoothstep",
+			&m_basicPixelConstantBufferData.useSmoothstep);
+		ImGui::SliderFloat3("Rim Color", &m_basicPixelConstantBufferData.rimColor.x,
+			0.0f, 1.0f);
+		ImGui::SliderFloat("Rim Power", &m_basicPixelConstantBufferData.rimPower,
+			0.01f, 10.0f);
+
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::TreeNode("General")) {
 			ImGui::Checkbox("Use Texture", &m_basicPixelConstantBufferData.useTexture);
@@ -319,7 +344,7 @@ namespace graphics
 
 			ImGui::SliderFloat3("m_modelTranslation", &m_modelTranslation.x, -2.0f, 2.0f);
 			ImGui::SliderFloat3("m_modelRotation(Rad)", &m_modelRotation.x, -3.14f, 3.14f);
-			ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.01f, 2.0f);
+			ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.1f, 2.0f);
 
 			ImGui::SliderFloat("m_viewRot", &m_viewRot, -3.14f, 3.14f);
 

@@ -7,21 +7,23 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 
 namespace graphics
 {
-	// RegisterClassEx()에서 멤버 함수를 직접 등록할 수가 없기 때문에
-	// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리
-	D3D11AppBase* g_appBase = nullptr;
-
-	// 렌더링 윈도우 너비 높이 설정
-	const int WIDTH = 1280;
-	const int HEIHGT = 960;
-
-	// RegisterClassEX()에 실제로 등록될 콜백함수
-	LRESULT WINAPI WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	namespace
 	{
-		// g_appBase를 이용해서 간접적으로 멤버 함수 호출
-		return g_appBase->MsgProc(hwnd, msg, wParam, lParam);
-	}
+		// RegisterClassEx()에서 멤버 함수를 직접 등록할 수가 없기 때문에
+		// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리
+		D3D11AppBase* g_appBase = nullptr;
 
+		// 렌더링 윈도우 너비 높이 설정
+		const int WIDTH = 1280;
+		const int HEIHGT = 960;
+
+		// RegisterClassEX()에 실제로 등록될 콜백함수
+		LRESULT WINAPI WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+		{
+			// g_appBase를 이용해서 간접적으로 멤버 함수 호출
+			return g_appBase->MsgProc(hwnd, msg, wParam, lParam);
+		}
+	}
 	//Constructor
 	D3D11AppBase::D3D11AppBase()
 		:m_screenWidth(WIDTH), m_screenHeight(HEIHGT), m_mainWindow(0), m_screenViewport(D3D11_VIEWPORT())
@@ -128,7 +130,7 @@ namespace graphics
 		switch (msg) {
 		case WM_SIZE:
 			// Reset and resize swapchain
-			if (m_swapChain) // 처음 실행인가?
+			if (m_swapChain) // 처음 실행인 경우
 			{
 				m_screenWidth = int(LOWORD(lParam));
 				m_screenHeight = int(HIWORD(lParam));
@@ -192,22 +194,21 @@ namespace graphics
 			return false;
 		}
 
-		// 툴바까지 포함한 윈도우 전체 해상도가 아니라
-		// 우리가 실제로 그리는 해상도가 width x height가 되도록
-		// 윈도우를 만들 해상도를 다시 계산해서 CreateWindow()에서 사용하도록 한다.
-
-		// 우리가 원하는 그림이 그려질 부분의 해상도
+		// 원하는 크기의 해상도(툴바 제외)
 		RECT windowRect = { 0, 0, m_screenWidth, m_screenHeight };
 
-		// 필요한 윈도우 크기(해상도) 계산
-		// windowRect의 값이 바뀜
+		// 필요한 윈도우 크기(해상도) 계산 (툴바를 포함)
 		AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
 
 		// 윈도우를 만들때 위에서 계산한 windowRect 사용
-		m_mainWindow = CreateWindow(wc.lpszClassName, L"D3D11Renderer", WS_OVERLAPPEDWINDOW,
+		m_mainWindow = CreateWindow(
+			wc.lpszClassName,
+			L"D3D11Renderer", 
+			WS_OVERLAPPEDWINDOW,
 			//윈도우의 생성 위치
 			100,                // 윈도우 좌측 상단의 x 좌표
 			100,                // 윈도우 좌측 상단의 y 좌표
+
 			// 툴바를 포함한 실제 윈도우의 크기 계산
 			windowRect.right - windowRect.left, // 윈도우 가로 방향 해상도
 			windowRect.bottom - windowRect.top, // 윈도우 세로 방향 해상도
@@ -227,15 +228,14 @@ namespace graphics
 
 	bool D3D11AppBase::InitDirect3D11()
 	{
-		// 그래픽카드를 사용하도록 설정
+		// 그래픽카드 사용
 		const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
 
-		// 여기서 생성하는 것들
-		// m_d3dDevice, m_d3dContext, 
-		// m_swapChain,
-		// m_renderTargetView,
-		// m_screenViewport,
-		// m_rasterizerSate
+		// 1. m_d3dDevice, m_d3dContext, 
+		// 2. m_swapChain,
+		// 3. m_renderTargetView,
+		// 4. m_screenViewport,
+		// 5. m_rasterizerState
 
 		// 1. m_d3dDevice와 m_d3dContext 생성
 		UINT createDeviceFlags = 0;
@@ -288,19 +288,7 @@ namespace graphics
 		}
 		// m_numQualityLevels = 0 // MSAA 끄기
 
-		// 생성한 device를 m_d3dDevice로 변환
-		if (FAILED(device.As(&m_d3dDevice))) {
-			std::cout << "device.AS() failed.\n";
-			return false;
-		}
-
-		// 생성한 context를 m_d3dContext로 변환
-		if (FAILED(context.As(&m_d3dContext))) {
-			std::cout << "context.As() failed.\n";
-			return false;
-		}
-
-		// Swapchain Description
+		// 2. SwapChain 생성
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.BufferDesc.Width = m_screenWidth;               // set the back buffer width
@@ -325,16 +313,19 @@ namespace graphics
 			sd.SampleDesc.Quality = 0;
 		}
 
-
-		if (FAILED(D3D11CreateDeviceAndSwapChain(0, // Default adapter
+		ThrowIfFailed(D3D11CreateDeviceAndSwapChain(
+			0, // Default adapter
 			driverType,
 			0, // No software device
-			createDeviceFlags, featureLevels, 1, D3D11_SDK_VERSION,
-			&sd, &m_swapChain, &m_d3dDevice, &featureLevel,
-			&m_d3dContext))) {
-			std::cout << "D3D11CreateDeviceAndSwapChain() failed.\n";
-			return false;
-		}
+			createDeviceFlags,
+			featureLevels,
+			1,
+			D3D11_SDK_VERSION,
+			&sd,
+			m_swapChain.GetAddressOf(),
+			m_d3dDevice.GetAddressOf()
+			, &featureLevel,
+			m_d3dContext.GetAddressOf()));
 
 		// CreateRenderTarget
 		CreateRenderTargetView();
@@ -547,14 +538,14 @@ namespace graphics
 			&pixelShader);
 	}
 
-	void D3D11AppBase::CreateIndexBuffer(const std::vector<uint16_t>& indices,
+	void D3D11AppBase::CreateIndexBuffer(const std::vector<uint32_t>& indices,
 		ComPtr<ID3D11Buffer>& m_indexBuffer) {
 		D3D11_BUFFER_DESC bufferDesc = {};
 		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // 초기화 후 변경X
-		bufferDesc.ByteWidth = UINT(sizeof(uint16_t) * indices.size());
+		bufferDesc.ByteWidth = UINT(sizeof(uint32_t) * indices.size());
 		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		bufferDesc.CPUAccessFlags = 0; // 0 if no CPU access is necessary.
-		bufferDesc.StructureByteStride = sizeof(uint16_t);
+		bufferDesc.StructureByteStride = sizeof(uint32_t);
 
 		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
 		indexBufferData.pSysMem = indices.data();

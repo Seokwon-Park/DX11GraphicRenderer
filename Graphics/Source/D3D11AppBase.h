@@ -49,7 +49,7 @@ namespace graphics
 			ComPtr<ID3D11VertexShader>& vertexShader,
 			ComPtr<ID3D11InputLayout>& inputLayout);
 		void CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader);
-		void CreateIndexBuffer(const std::vector<uint16_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer);
+		void CreateIndexBuffer(const std::vector<uint32_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer);
 
 		// Template는 헤더 파일에 정의
 		template <typename T_VERTEX>
@@ -136,9 +136,9 @@ namespace graphics
 		ComPtr<ID3D11DeviceContext> m_d3dContext;
 		// 렌더타겟 뷰(RTV)
 		ComPtr<ID3D11RenderTargetView> m_renderTargetView;
-		// 스왑체인
+		// Swapchain
 		ComPtr<IDXGISwapChain> m_swapChain;
-		// 래스터라이저
+		// RasterizerState
 		ComPtr<ID3D11RasterizerState> m_solidRasterizerState;
 		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
 		bool m_drawAsWire = false;

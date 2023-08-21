@@ -26,7 +26,7 @@ namespace graphics {
     // Mesh Data
     struct MeshData {
         std::vector<Vertex> vertices;
-        std::vector<uint16_t> indices; // uint32·Î º¯°æ
+        std::vector<uint32_t> indices; 
         std::string textureFilename;
     };
 
@@ -35,6 +35,9 @@ namespace graphics {
         ComPtr<ID3D11Buffer> indexBuffer;
         ComPtr<ID3D11Buffer> vertexConstantBuffer;
         ComPtr<ID3D11Buffer> pixelConstantBuffer;
+
+        ComPtr<ID3D11Texture2D> texture;
+        ComPtr<ID3D11ShaderResourceView> textureResourceView;
 
         UINT m_indexCount = 0;
     };

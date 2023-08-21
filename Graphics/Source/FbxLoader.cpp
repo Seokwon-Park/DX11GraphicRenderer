@@ -1,5 +1,6 @@
 #include "FbxLoader.h"
 
+#if USE_FBX_SDK
 namespace graphics
 {
 	FbxLoader::FbxLoader() {};
@@ -85,34 +86,6 @@ namespace graphics
 				ProcessNode(node->GetChild(i), m);
 			}
 		}
-
-		// Normalize vertices
-		XMFLOAT3 vmin(1000, 1000, 1000);
-		XMFLOAT3 vmax(-1000, -1000, -1000);
-		for (auto& mesh : meshes) {
-			for (auto& v : mesh.vertices) {
-				vmin.x = XMMin(vmin.x, v.position.x);
-				vmin.y = XMMin(vmin.y, v.position.y);
-				vmin.z = XMMin(vmin.z, v.position.z);
-				vmax.x = XMMax(vmax.x, v.position.x);
-				vmax.y = XMMax(vmax.y, v.position.y);
-				vmax.z = XMMax(vmax.z, v.position.z);
-			}
-		}
-
-		float dx = vmax.x - vmin.x, dy = vmax.y - vmin.y, dz = vmax.z - vmin.z;
-		float dl = XMMax(XMMax(dx, dy), dz);
-		float cx = (vmax.x + vmin.x) * 0.5f, cy = (vmax.y + vmin.y) * 0.5f,
-			cz = (vmax.z + vmin.z) * 0.5f;
-
-		for (auto& mesh : meshes) {
-			for (auto& v : mesh.vertices) {
-				v.position.x = (v.position.x - cx) / dl;
-				v.position.y = (v.position.y - cy) / dl;
-				v.position.z = (v.position.z - cz) / dl;
-			}
-		}
-
 	}
 
 
@@ -120,7 +93,7 @@ namespace graphics
 
 		// Data to fill
 		std::vector<Vertex> vertices;
-		std::vector<uint16_t> indices;
+		std::vector<uint32_t> indices;
 
 		FbxVector4* controlPoints = mesh->GetControlPoints();
 		int vertexCount = mesh->GetControlPointsCount();
@@ -211,3 +184,4 @@ namespace graphics
 	}
 
 }
+#endif

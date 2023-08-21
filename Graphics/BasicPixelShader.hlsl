@@ -9,6 +9,10 @@ cbuffer BasicPixelConstantBuffer : register(b0)
     bool useTexture;
     Material material;
     Light lights[MAX_LIGHTS];
+    float3 rimColor;
+    float rimPower; 
+    float rimStrength = 0.0f; 
+    bool useSmoothstep = false; 
 };
 
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -43,6 +47,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
     {
         color += ComputeSpotLight(lights[i], material, input.posWorld, input.normalWorld, toEye);
     }
+    
+    color += (1.f - dot(input.normalWorld, toEye)) * rimPower * rimStrength;
 
     return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) : float4(color, 1.0);
 
