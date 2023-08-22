@@ -10,9 +10,10 @@ cbuffer BasicPixelConstantBuffer : register(b0)
     Material material;
     Light lights[MAX_LIGHTS];
     float3 rimColor;
-    float rimPower; 
-    float rimStrength; 
+    float rimPower;
+    float rimStrength;
     bool useSmoothstep;
+    bool useRim;
 };
 
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -51,14 +52,18 @@ float4 main(PixelShaderInput input) : SV_TARGET
     uv.x = atan2(input.posModel.z, input.posModel.x) / (3.141592 * 2.0) + 0.5;
     uv.y = acos(input.posModel.y / 1.5) / 3.141592;
     
-    float rim = (1.f - dot(input.normalWorld, toEye));
+    if (useRim)
+    {
+        float rim = (1.f - dot(input.normalWorld, toEye));
     
-    if(useSmoothstep)
-        rim = smoothstep(0.f, 1.f, rim);
+        if (useSmoothstep)
+            rim = smoothstep(0.f, 1.f, rim);
     
-    rim = pow(abs(rim), rimPower);
+        rim = pow(abs(rim), rimPower);
         
-    color += rim * rimColor * rimStrength;
+        color += rim * rimColor * rimStrength;
+    }
+
 
     return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, uv) : float4(color, 1.0);
 

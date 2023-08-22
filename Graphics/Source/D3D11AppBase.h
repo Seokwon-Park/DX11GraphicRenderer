@@ -14,6 +14,7 @@ namespace graphics
 		D3D11AppBase();
 		// 소멸자
 		virtual ~D3D11AppBase();
+
 		// 화면 가로비
 		float GetAspectRatio() const;
 

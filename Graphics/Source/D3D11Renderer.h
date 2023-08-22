@@ -43,14 +43,18 @@ namespace graphics
 	// Pixel셰이더 상수
 	struct BasicPixelConstantBuffer {
 		XMFLOAT3 eyeWorld;        // 12
-		bool useTexture;		  // 4  bool이지만 4
+		bool useTexture;		  // 4
+
 		Material material;		  // 48 16*3
 		Light lights[MAX_LIGHTS]; // 48 * MAX_LIGHTS
+
 		XMFLOAT3 rimColor = XMFLOAT3(1.f, 1.f, 1.f); // 12
 		float rimPower; // 4
+
 		float rimStrength = 0.0f; // 4
-		bool useSmoothstep = false; // 4
-		float dummy[2]; // 8
+		int useSmoothstep = 0; // 4
+		int useRim = 0; // 4
+		float dummy[1]; // 4
 	};
 
 	static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,

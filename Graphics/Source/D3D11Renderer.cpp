@@ -39,7 +39,7 @@ namespace graphics
 		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("c:/zelda/zeldaPosed001.fbx");
 		//std::vector<MeshData> meshes = { Geometry::MakeTetrahedron(1.f) };
 		//std::vector<MeshData> meshes = { Geometry::MakeIcosahedron(1.f) };
-		std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1,1) };
+		std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1) };
 		//for (auto& meshData : meshes) {
 		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
 		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
@@ -321,17 +321,18 @@ namespace graphics
 
 	void D3D11Renderer::UpdateGUI()
 	{
+		ImGui::Checkbox("Use Rim", reinterpret_cast<bool*>(&m_basicPixelConstantBufferData.useRim));
 		ImGui::SliderFloat("Rim Strength",
 			&m_basicPixelConstantBufferData.rimStrength, 0.0f,
 			10.0f);
 		ImGui::Checkbox("Use Smoothstep",
-			&m_basicPixelConstantBufferData.useSmoothstep);
+			reinterpret_cast<bool*>(&m_basicPixelConstantBufferData.useSmoothstep));
 		ImGui::SliderFloat3("Rim Color", &m_basicPixelConstantBufferData.rimColor.x,
 			0.0f, 1.0f);
 		ImGui::SliderFloat("Rim Power", &m_basicPixelConstantBufferData.rimPower,
 			0.01f, 10.0f);
 
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::TreeNode("General")) {
 			ImGui::Checkbox("Use Texture", &m_basicPixelConstantBufferData.useTexture);
 			ImGui::Checkbox("usePerspectiveProjection", &m_usePerspectiveProjection);
@@ -359,7 +360,7 @@ namespace graphics
 			ImGui::TreePop();
 		}
 
-		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::TreeNode("Lights")) {
 			ImGui::SliderFloat("Material Shininess",
 				&m_basicPixelConstantBufferData.material.shininess, 1.0f,
