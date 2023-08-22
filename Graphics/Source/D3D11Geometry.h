@@ -8,9 +8,9 @@ namespace graphics {
 
     // Vertex Struct
     struct Vertex {
-        XMFLOAT3 position;
-        XMFLOAT3 normal;
-        XMFLOAT2 texcoord;
+        XMFLOAT3 position = XMFLOAT3();
+        XMFLOAT3 normal = XMFLOAT3();
+        XMFLOAT2 texcoord = XMFLOAT2();
     };
 
     struct Axis
@@ -46,16 +46,16 @@ namespace graphics {
     public:
         //static std::vector<MeshData> ReadFromFile(std::string basePath,
         //    std::string filename);
-        static MeshData MakeSquare(float length, int axis1 = Axis::x, int axis2 = Axis::y);
-        static MeshData MakeCube(float width, float height, float depth, float scale);
+        static MeshData MakePlane(float length, int axis1 = Axis::x, int axis2 = Axis::y);
+        static MeshData MakeCube(float width, float height, float depth);
         static MeshData MakeGrid(const float width, const float height,
             const int numSlices, const int numStacks);
         static MeshData MakeCylinder(const float bottomRadius, const float topRadius, float height, int numSlices, int numStacks);
         static MeshData MakeSphere(const float radius, const int numSlices,
             const int numStacks);
 
-        //static MeshData MakeTetrahedron();
-        //static MeshData MakeIcosahedron();
+        static MeshData MakeTetrahedron();
+        static MeshData MakeIcosahedron();
         static MeshData SubdivideToSphere(const float radius, MeshData meshData);
         static std::vector<MeshData> ReadModelFromFile(std::string filename);
     };

@@ -135,6 +135,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\AssimpLoader.cpp" />
+    <ClCompile Include="Source\D3D11Math.cpp" />
+    <ClCompile Include="Source\D3D11Utilities.cpp" />
     <ClCompile Include="Source\FbxLoader.cpp" />
     <ClCompile Include="Source\D3D11Utilities.h" />
     <ClCompile Include="Source\D3D11AppBase.cpp" />
@@ -146,6 +148,7 @@
     <ClInclude Include="Source\AssimpLoader.h" />
     <ClInclude Include="Source\CommonHeaders.h" />
     <ClInclude Include="Source\D3D11AppBase.h" />
+    <ClInclude Include="Source\D3D11Math.h" />
     <ClInclude Include="Source\D3D11Renderer.h" />
     <ClInclude Include="Source\D3D11Geometry.h" />
     <ClInclude Include="Source\FbxLoader.h" />

@@ -1,13 +1,14 @@
 #include "CommonHeaders.h"
 #include "FbxLoader.h"
 #include "AssimpLoader.h"
+#include "D3D11Math.h"
 
 //LeftHanded CW
 namespace graphics
 {
 	using namespace DirectX;
 
-	MeshData Geometry::MakeSquare(float length, int axis1, int axis2) {
+	MeshData Geometry::MakePlane(float length, int axis1, int axis2) {
 		std::vector<XMFLOAT3> positions;
 		std::vector<XMFLOAT3> normals;
 		std::vector<XMFLOAT2> texcoords; // 텍스춰 좌표
@@ -83,7 +84,7 @@ namespace graphics
 		return meshData;
 	}
 
-	MeshData graphics::Geometry::MakeCube(float width, float height, float depth, float scale) {
+	MeshData graphics::Geometry::MakeCube(float width, float height, float depth) {
 
 		MeshData meshData;
 
@@ -201,13 +202,7 @@ namespace graphics
 	MeshData Geometry::MakeGrid(const float width, const float height,
 		const int numSlices, const int numStacks) {
 
-		// 안내: 실린더와 구 만들기 이해를 돕기 위해 후속 녹화한 강의입니다.
-
-		// x-y 평면 (z = 0) 위에 격자 구조로 평면 만들기
-		// 뒤에서 복잡한 지형으로 확장
-
-		// 1단계: numStacks = 1 이고 numSlices만 고려해서 구현
-		// 2단계: 2차원 바둑판 구조
+		// x-y 평면 (z = 0) 위에 격자 구조로 평면 만들어서 확장
 
 		const float dx = width / numSlices;
 		const float dy = height / numStacks;
@@ -226,34 +221,20 @@ namespace graphics
 				// x-y 평면에서 시작점을 x 방향으로 이동
 				// v.position = stackStartPoint + Vector3(i * dx, 0.0f, 0.0f);
 				XMStoreFloat3(&v.position, XMVector3Transform(XMLoadFloat3(&stackStartPoint), XMMatrixTranslation(dx * float(i), dy * float(j), 0.0f)));
+				
+				// Calculate Sin Normal
+				// https://www.khanacademy.org/math/multivariable-calculus/integrating-multivariable-functions/line-integrals-in-vector-fields-articles/a/constructing-a-unit-normal-vector-to-curve
+				v.normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+
+				// 물결 모양 평면
 				// v.position.z = sin(i * dx * 10.0f) * 0.1f;
-				// 시점을 향하는 방향
-				//v.normal = XMFLOAT3(cos(i * dx * 10.0f), 0.0f, -1.0f);
-				// v.texcoord = Vector2(stackStartPoint.x + i * dx,
-				// stackStartPoint.y);
+				// sin 그래프의 normal을 대입
+				// v.normal = XMFLOAT3(cos(i * dx * 10.0f), 0.0f, -1.0f);
 				v.texcoord = XMFLOAT2(float(i) / numSlices, 1.0f - float(j) / numStacks);//uv좌표는 y축이 반대!!
 
 				vertices.push_back(v);
 			}
 		}
-
-		//// y = 0.5f * height 인 점들
-		// stackStartPoint = Vector3(-0.5f * width, 0.5f * height, 0.0f);
-		// for (int i = 0; i <= numSlices; i++) {
-		//     Vertex v;
-
-		//    // x-y 평면에서 시작점을 x 방향으로 이동
-		//    v.position = Vector3::Transform(
-		//        stackStartPoint,
-		//        Matrix::CreateTranslation(Vector3(dx * float(i), 0.0f, 0.0f)));
-
-		//    // 시점을 향하는 방향
-		//    v.normal = Vector3(0.0f, 0.0f, -1.0f);
-		//    // v.texcoord = Vector2(stackStartPoint.x + i * dx,
-		//    stackStartPoint.y); v.texcoord = Vector2(float(i) / numSlices, 1.0f);
-
-		//    vertices.push_back(v);
-		//}
 
 		// 인덱스 추가
 		for (int j = 0; j < numStacks; j++) {
@@ -293,6 +274,7 @@ namespace graphics
 			for (int i = 0; i <= numSlices; i++) {
 				XMStoreFloat3(&v.position, XMVector3Transform(XMLoadFloat3(&yStartPoint), XMMatrixRotationY(theta_step * i)));
 
+				//normal = modelPos - Center (Same height);
 				XMStoreFloat3(&v.normal, XMVectorSet(v.position.x, -height * 0.5f + dy * j, v.position.z, 0.0f)
 					- XMVectorSet(0.0f, -height * 0.5f + dy * j, 0.0f, 0.0f));
 
@@ -378,10 +360,94 @@ namespace graphics
 		return meshData;
 	}
 
+	MeshData Geometry::MakeTetrahedron()
+	{
+
+
+		std::vector<XMFLOAT3> points = {
+			XMFLOAT3({.5f, .5f, .5f}),
+			XMFLOAT3({.5f, -.5f, -.5f}),
+			XMFLOAT3({-.5f, .5f, -.5f}),
+			XMFLOAT3({-.5f, -.5f, .5f}) 
+		};
+
+		XMFLOAT3 center = XMFLOAT3();
+
+		for (int i = 0; i < 4; i++) {
+			center += points[i];
+		}
+		center /= 4.0f;
+
+		for (int i = 0; i < 4; i++) {
+			points[i] -= center;
+		}
+
+		MeshData meshData;
+
+		for (int i = 0; i < points.size(); i++) {
+
+			Vertex v;
+			v.position = points[i];
+			v.normal = v.position; // 중심이 원점
+			XMStoreFloat3(&v.normal, XMVector3Normalize(XMLoadFloat3(&v.normal)));
+
+			meshData.vertices.push_back(v);
+		}
+
+		meshData.indices = { 0, 1, 2, 3, 2, 1, 0, 3, 1, 0, 2, 3 };
+
+		return meshData;
+	}
+
+	//https://math.stackexchange.com/questions/2174594/co-ordinates-of-the-vertices-an-icosahedron-relative-to-its-centroid
+	MeshData Geometry::MakeIcosahedron()
+	{
+		float base = 1.f;
+		float pi = (1.f + sqrt(5.f)) / 2 * base;
+
+		std::vector<XMFLOAT3> points = {
+			XMFLOAT3({pi,base,0}),
+			XMFLOAT3({pi,-base,0}),
+			XMFLOAT3({-pi,-base,0}),
+			XMFLOAT3({-pi,base,0}),
+			XMFLOAT3({base,0,pi}),
+			XMFLOAT3({-base,0,pi}),
+			XMFLOAT3({-base,0,-pi}),
+			XMFLOAT3({base,0,-pi}),
+			XMFLOAT3({0,pi,base}),
+			XMFLOAT3({0,pi,-base}),
+			XMFLOAT3({0,-pi,-base}),
+			XMFLOAT3({0,-pi,base}),
+		};
+
+		MeshData meshData;
+
+		for (size_t i = 0; i < points.size(); i++) {
+			Vertex v;
+			v.position = points[i];
+			v.normal = v.position;
+			XMStoreFloat3(&v.normal, XMVector3Normalize(XMLoadFloat3(&v.normal)));
+
+			meshData.vertices.push_back(v);
+		}
+
+		//meshData.indices = { 1,  4,  0, 4,  9, 0, 4, 5,  9, 8, 5, 4,  1,  8, 4,
+		//				   1,  10, 8, 10, 3, 8, 8, 3,  5, 3, 2, 5,  3,  7, 2,
+		//				   3,  10, 7, 10, 6, 7, 6, 11, 7, 6, 0, 11, 6,  1, 0,
+		//				   10, 1,  6, 11, 0, 9, 2, 11, 9, 5, 2, 9,  11, 2, 7 };
+		meshData.indices = 
+		{ 
+			0, 9, 8,  0, 7, 9,  0, 1, 7,  0, 4, 1,  0, 8, 4,
+			8, 9, 3,  9, 7, 6,  7, 1, 10,  1, 4, 11,  4, 8, 5,
+			8, 3, 5,  9, 6, 3,  7, 10, 6,  1, 11, 10,  4, 5, 11,
+			5, 3, 2,  3, 6, 2,  6, 10, 2,  10, 11, 2,  11, 5, 2  
+		  };
+
+		return meshData;
+	}
+
 	MeshData Geometry::SubdivideToSphere(const float radius,
 		MeshData meshData) {
-
-		using namespace DirectX;
 
 		// 원점이 중심이라고 가정
 		// 입력 받은 구 모델의 반지름 조절
@@ -395,8 +461,7 @@ namespace graphics
 			XMStoreFloat3(&v.normal, (XMVector3Normalize(XMLoadFloat3(&v.normal))));
 			XMStoreFloat3(&v.position, XMVectorScale(XMLoadFloat3(&v.normal), radius));
 
-			// atan vs atan2
-			// https://stackoverflow.com/questions/283406/what-is-the-difference-between-atan-and-atan2-in-c
+			// https://gamedev.stackexchange.com/questions/114412/how-to-get-uv-coordinates-for-sphere-cylindrical-projection
 			const float theta = atan2f(v.position.z, v.position.x);
 			const float phi = acosf(v.position.y / radius);
 			v.texcoord.x = theta / XM_2PI;

@@ -71,7 +71,7 @@ namespace graphics {
 
 
             for (auto& v : newMesh.vertices) {
-                XMVector3Transform(XMLoadFloat3(&v.position), m);
+                XMStoreFloat3(&v.position, XMVector3Transform(XMLoadFloat3(&v.position), m));
             }
 
             meshes.push_back(newMesh);
@@ -98,7 +98,7 @@ namespace graphics {
             vertex.normal.x = mesh->mNormals[i].x;
             vertex.normal.y = mesh->mNormals[i].y;
             vertex.normal.z = mesh->mNormals[i].z;
-            XMVector3Normalize(XMLoadFloat3(&vertex.normal));
+            XMStoreFloat3(&vertex.normal, XMVector3Normalize(XMLoadFloat3(&vertex.normal)));
 
             if (mesh->mTextureCoords[0]) {
                 vertex.texcoord.x = (float)mesh->mTextureCoords[0][i].x;

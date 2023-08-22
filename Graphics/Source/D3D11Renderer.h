@@ -106,7 +106,7 @@ namespace graphics
 		// Transforms
 		XMFLOAT3 m_modelTranslation = XMFLOAT3();
 		XMFLOAT3 m_modelRotation = XMFLOAT3();
-		XMFLOAT3 m_modelScaling = XMFLOAT3(1.f,1.f,1.f);
+		XMFLOAT3 m_modelScaling = XMFLOAT3(.5f,.5f,.5f);
 
 		//XMFLOAT3 m_viewEyePos= XMFLOAT3(0.0f,0.0f,-2.0f);
 		//XMFLOAT3 m_viewEyeDir= XMFLOAT3(0.0f, 0.0f, 1.0f);

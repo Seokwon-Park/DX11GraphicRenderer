@@ -568,9 +568,14 @@ namespace graphics
 
 		std::vector<uint8_t> image;
 
-		//image.resize(width * height * channels);
-		image.resize(width * height * channels);
-		memcpy(image.data(), img, image.size() * sizeof(uint8_t));
+		// 4채널로 만들어서 복사
+		image.resize(width * height * 4);
+		for (size_t i = 0; i < width * height; i++) {
+			for (size_t c = 0; c < 3; c++) {
+				image[4 * i + c] = img[i * channels + c];
+			}
+			image[4 * i + 3] = 255;
+		}
 
 		// Create texture.
 		D3D11_TEXTURE2D_DESC txtDesc = {};
@@ -585,8 +590,10 @@ namespace graphics
 		// Fill in the subresource data.
 		D3D11_SUBRESOURCE_DATA InitData;
 		InitData.pSysMem = image.data();
-		InitData.SysMemPitch = txtDesc.Width * sizeof(uint8_t) * channels;
+		InitData.SysMemPitch = txtDesc.Width * sizeof(uint8_t) * 4;
 		// InitData.SysMemSlicePitch = 0;
+
+	
 
 		m_d3dDevice->CreateTexture2D(&txtDesc, &InitData, texture.GetAddressOf());
 		m_d3dDevice->CreateShaderResourceView(texture.Get(), nullptr,

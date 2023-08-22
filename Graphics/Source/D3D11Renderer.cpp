@@ -32,20 +32,27 @@ namespace graphics
 		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
-
 		//}
 
 
-		std::vector<MeshData> meshes = { Geometry::MakeSquare(2.f, Axis::x, Axis::y) };
+		//std::vector<MeshData> meshes = { Geometry::MakePlane(2.f, Axis::x, Axis::y) };
 		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("c:/zelda/zeldaPosed001.fbx");
-		
-		meshes[0].textureFilename = "D:/toon.png";
+		//std::vector<MeshData> meshes = { Geometry::MakeTetrahedron(1.f) };
+		//std::vector<MeshData> meshes = { Geometry::MakeIcosahedron(1.f) };
+		std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1,1) };
+		//for (auto& meshData : meshes) {
+		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+		//}
+
+		meshes[0].textureFilename = "D:/earth.jpg";
 
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
 		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 25, 25);
-		//MeshData meshData = Geometry::MakeSquare();
-		//std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1,1) };
+		//MeshData meshData = Geometry::MakePlane();
 
 		//m_mesh = std::make_shared<Mesh>();
 
@@ -102,7 +109,7 @@ namespace graphics
 			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 3, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 4 * 3 + 4 * 3, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			// 4 * 3 은 POSITION 4*3 다음 데이터부터 시작이라는 뜻
+			// 4 * 3 은 POSITION = float[3], 4byte*3 다음 데이터부터 시작
 		};
 
 		D3D11AppBase::CreateVertexShaderAndInputLayout(L"BasicVertexShader.hlsl", inputElements, m_colorVertexShader,
@@ -221,7 +228,7 @@ namespace graphics
 
 		// 노멀 벡터 그리기
 		if (m_drawNormals && m_dirtyFlag) {
-			
+
 			D3D11AppBase::UpdateBuffer(m_normalVertexConstantBufferData,
 				m_normalLines->vertexConstantBuffer);
 
