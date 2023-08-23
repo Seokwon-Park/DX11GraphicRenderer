@@ -65,12 +65,17 @@
     <ClInclude Include="Source\D3D11Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CubeMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl" />
     <FxCompile Include="BasicVertexShader.hlsl" />
     <FxCompile Include="NormalPixelShader.hlsl" />
     <FxCompile Include="NormalVertexShader.hlsl" />
+    <FxCompile Include="CubePS.hlsl" />
+    <FxCompile Include="CubeVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Commons.hlsli" />

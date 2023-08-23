@@ -43,4 +43,9 @@ namespace graphics
 
 		return res;
 	}
+
+	XMFLOAT3 CreateXMFLOAT3(float x)
+	{
+		return XMFLOAT3(x, x, x);
+	}
 }

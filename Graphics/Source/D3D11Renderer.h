@@ -1,5 +1,7 @@
 #pragma once
 #include "D3D11AppBase.h"
+#include "CubeMapping.h"
+#include "D3D11Math.h"
 
 namespace graphics
 {
@@ -74,6 +76,8 @@ namespace graphics
 	public:
 		D3D11Renderer();
 
+		void InitializeCubeMapping();
+
 		virtual bool Initialize() override;
 		virtual void UpdateGUI() override;
 		virtual void Update(float dt) override;
@@ -115,7 +119,7 @@ namespace graphics
 		//XMFLOAT3 m_viewEyePos= XMFLOAT3(0.0f,0.0f,-2.0f);
 		//XMFLOAT3 m_viewEyeDir= XMFLOAT3(0.0f, 0.0f, 1.0f);
 		//XMFLOAT3 m_viewUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		float m_viewRot = 0.0f;
+		XMFLOAT3 m_viewRot = CreateXMFLOAT3(0.f);
 
 		//Frustum
 		//Field of View
@@ -134,5 +138,7 @@ namespace graphics
 		std::shared_ptr<Mesh> m_normalLines;
 		bool m_drawNormals = false;
 		bool m_dirtyFlag = false;
+
+		CubeMapping m_cubeMapping;
 	};
 } // namespace graphics
