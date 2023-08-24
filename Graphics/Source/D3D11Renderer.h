@@ -1,7 +1,6 @@
 #pragma once
-#include "D3D11AppBase.h"
+#include "D3D11EngineBase.h"
 #include "CubeMapping.h"
-#include "D3D11Math.h"
 
 namespace graphics
 {
@@ -71,7 +70,7 @@ namespace graphics
 	static_assert((sizeof(NormalVertexConstantBuffer) % 16) == 0,
 		"Constant Buffer size must be 16-byte aligned");
 
-	class D3D11Renderer : public D3D11AppBase
+	class D3D11Renderer : public D3D11EngineBase
 	{
 	public:
 		D3D11Renderer();
@@ -108,6 +107,9 @@ namespace graphics
 		ComPtr<ID3D11ShaderResourceView> m_textureResourceView;
 		ComPtr<ID3D11SamplerState> m_samplerState;
 
+		ComPtr<ID3D11Texture2D> temp_tex;
+		ComPtr<ID3D11ShaderResourceView> temp_srv;
+
 		// perspective vs orthographic
 		bool m_usePerspectiveProjection = true;
 		
@@ -126,7 +128,7 @@ namespace graphics
 		float m_projFovAngleY = 70.0f;
 		float m_nearZ = 0.01f;
 		float m_farZ = 100.0f;
-		float m_aspect = D3D11AppBase::GetAspectRatio();		
+		float m_aspect = D3D11EngineBase::GetAspectRatio();		
 
 		//Light
 		int m_lightType = 0;

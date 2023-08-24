@@ -15,22 +15,11 @@
 //    #undef min
 //#endif
 #include <windows.h>
-#include <wrl.h> 
 
 //Imgui.h>
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
-
-//DX11
-//#include <dxgi.h> // IDXGIFactory
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <DirectXMath.h>
-
-#include "D3D11Geometry.h"
-
-
 
 inline void ThrowIfFailed(HRESULT hr)
 {

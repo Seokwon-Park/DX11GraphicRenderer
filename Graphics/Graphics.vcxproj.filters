@@ -21,7 +21,7 @@
     <ClCompile Include="Source\D3D11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\D3D11AppBase.cpp">
+    <ClCompile Include="Source\D3D11EngineBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\D3D11Utilities.h">
@@ -50,7 +50,7 @@
     <ClInclude Include="Source\CommonHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\D3D11AppBase.h">
+    <ClInclude Include="Source\D3D11EngineBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\D3D11Geometry.h">
@@ -66,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\CubeMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\D3D11CommonHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

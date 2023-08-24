@@ -4,7 +4,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include "CommonHeaders.h"
+#include "D3D11CommonHeaders.h"
 
 namespace graphics {
     class AssimpLoader {

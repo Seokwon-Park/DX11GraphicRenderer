@@ -13,6 +13,7 @@ PixelShaderInput main(VertexShaderInput input)
     // 불필요한 멤버들도 VertexShaderInput을 통일시켰기 때문에 채워줘야 합니다.
     
     PixelShaderInput output;
+    output.posModel = input.position;
     float4 pos = float4(input.position, 1.0f);
 
     pos = mul(pos, model); // Identity

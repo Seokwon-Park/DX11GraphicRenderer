@@ -1,4 +1,4 @@
-#include "D3D11AppBase.h"
+#include "D3D11EngineBase.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -11,7 +11,7 @@ namespace graphics
 	{
 		// RegisterClassEx()에서 멤버 함수를 직접 등록할 수가 없기 때문에
 		// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리
-		D3D11AppBase* g_appBase = nullptr;
+		D3D11EngineBase* g_appBase = nullptr;
 
 		// 렌더링 윈도우 너비 높이 설정
 		const int WIDTH = 1280;
@@ -25,14 +25,14 @@ namespace graphics
 		}
 	}
 	//Constructor
-	D3D11AppBase::D3D11AppBase()
+	D3D11EngineBase::D3D11EngineBase()
 		:m_screenWidth(WIDTH), m_screenHeight(HEIHGT), m_mainWindow(0), m_screenViewport(D3D11_VIEWPORT())
 	{
 		g_appBase = this;
 	}
 
 	//Destructor
-	D3D11AppBase::~D3D11AppBase()
+	D3D11EngineBase::~D3D11EngineBase()
 	{
 		g_appBase = nullptr;
 
@@ -45,13 +45,13 @@ namespace graphics
 		DestroyWindow(m_mainWindow);
 	}
 
-	float D3D11AppBase::GetAspectRatio() const
+	float D3D11EngineBase::GetAspectRatio() const
 	{
 		return float(m_screenWidth - m_guiWidth) / m_screenHeight;
 	}
 
 	// 렌더러 실행 시
-	int D3D11AppBase::Run()
+	int D3D11EngineBase::Run()
 	{
 		// Main message loop
 		MSG msg = { 0 };
@@ -99,7 +99,7 @@ namespace graphics
 	}
 
 	// Initialize Essentials(if failed, return false)
-	bool D3D11AppBase::Initialize()
+	bool D3D11EngineBase::Initialize()
 	{
 		// Check Window Init
 		if (!InitMainWindow())
@@ -122,7 +122,7 @@ namespace graphics
 		return true;
 	}
 
-	LRESULT D3D11AppBase::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	LRESULT D3D11EngineBase::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
 			return true;
@@ -172,7 +172,7 @@ namespace graphics
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
-	bool D3D11AppBase::InitMainWindow()
+	bool D3D11EngineBase::InitMainWindow()
 	{
 		WNDCLASSEX wc = { sizeof(WNDCLASSEX),
 					CS_CLASSDC,
@@ -226,7 +226,7 @@ namespace graphics
 		return true;
 	}
 
-	bool D3D11AppBase::InitDirect3D11()
+	bool D3D11EngineBase::InitDirect3D11()
 	{
 		// 그래픽카드 사용
 		const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
@@ -367,7 +367,7 @@ namespace graphics
 
 		return true;
 	}
-	bool D3D11AppBase::InitGUI()
+	bool D3D11EngineBase::InitGUI()
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -402,7 +402,7 @@ namespace graphics
 		}
 	}
 
-	void D3D11AppBase::SetViewport()
+	void D3D11EngineBase::SetViewport()
 	{
 		static float previousGuiWidth = m_guiWidth;
 		if (previousGuiWidth != m_guiWidth)
@@ -423,7 +423,7 @@ namespace graphics
 		}
 	}
 
-	bool D3D11AppBase::CreateRenderTargetView()
+	bool D3D11EngineBase::CreateRenderTargetView()
 	{
 		ComPtr<ID3D11Texture2D> backBuffer;
 		m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
@@ -437,7 +437,7 @@ namespace graphics
 		}
 		return true;
 	}
-	bool D3D11AppBase::CreateDepthBuffer()
+	bool D3D11EngineBase::CreateDepthBuffer()
 	{
 		D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
 		depthStencilBufferDesc.Width = m_screenWidth;
@@ -469,7 +469,7 @@ namespace graphics
 		return true;
 	}
 
-	void D3D11AppBase::CreateVertexShaderAndInputLayout(
+	void D3D11EngineBase::CreateVertexShaderAndInputLayout(
 		const std::wstring& filename,
 		const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
 		ComPtr<ID3D11VertexShader>& vertexShader,
@@ -509,7 +509,7 @@ namespace graphics
 			&inputLayout);
 	}
 
-	void D3D11AppBase::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader) {
+	void D3D11EngineBase::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader) {
 		ComPtr<ID3DBlob> shaderBlob;
 		ComPtr<ID3DBlob> errorBlob;
 
@@ -538,7 +538,7 @@ namespace graphics
 			&pixelShader);
 	}
 
-	void D3D11AppBase::CreateIndexBuffer(const std::vector<uint32_t>& indices,
+	void D3D11EngineBase::CreateIndexBuffer(const std::vector<uint32_t>& indices,
 		ComPtr<ID3D11Buffer>& m_indexBuffer) {
 		D3D11_BUFFER_DESC bufferDesc = {};
 		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // 초기화 후 변경X
@@ -555,7 +555,7 @@ namespace graphics
 		m_d3dDevice->CreateBuffer(&bufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
 	}
 
-	void D3D11AppBase::CreateTexture(const std::string filename,
+	void D3D11EngineBase::CreateTexture(const std::string filename,
 		ComPtr<ID3D11Texture2D>& texture,
 		ComPtr<ID3D11ShaderResourceView>& textureResourceView)
 	{

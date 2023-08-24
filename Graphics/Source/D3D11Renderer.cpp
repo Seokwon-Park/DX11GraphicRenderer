@@ -1,11 +1,10 @@
 #include "D3D11Renderer.h"
 
-
 #include <directxtk/DDSTextureLoader.h>
 
 namespace graphics
 {
-	D3D11Renderer::D3D11Renderer() : D3D11AppBase(), m_basicVertexConstantBufferData() {}
+	D3D11Renderer::D3D11Renderer() : D3D11EngineBase(), m_basicVertexConstantBufferData() {}
 
 	void D3D11Renderer::InitializeCubeMapping() {
 
@@ -35,9 +34,9 @@ namespace graphics
 		m_basicVertexConstantBufferData.projection = XMMatrixIdentity();
 		ComPtr<ID3D11Buffer> vertexConstantBuffer;
 		ComPtr<ID3D11Buffer> pixelConstantBuffer;
-		D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice,m_basicVertexConstantBufferData,
 			m_cubeMapping.cubeMesh->vertexConstantBuffer);
-		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice,m_basicPixelConstantBufferData,
 			m_cubeMapping.cubeMesh->pixelConstantBuffer);
 
 		// 커다란 박스 초기화
@@ -45,13 +44,20 @@ namespace graphics
 		// - D3D11_CULL_MODE::D3D11_CULL_NONE 또는 삼각형 뒤집기
 		// - 예시) std::reverse(myvector.begin(),myvector.end());
 		//MeshData cubeMeshData = Geometry::MakeIcosahedron();
-		MeshData cubeMeshData = Geometry::MakeSphere(20.f, 3, 3);
+		//MeshData cubeMeshData = Geometry::MakeTetrahedron();
+		MeshData cubeMeshData = Geometry::MakeSphere(20.f, 10, 10);
+		//MeshData cubeMeshData = Geometry::MakeSphere(1.f, 10, 10);
+		//cubeMeshData = Geometry::SubdivideToSphere(15.f, cubeMeshData);
+		//cubeMeshData = Geometry::SubdivideToSphere(15.f, cubeMeshData);
+		//cubeMeshData = Geometry::SubdivideToSphere(15.f, cubeMeshData);
+		//cubeMeshData = Geometry::SubdivideToSphere(15.f, cubeMeshData);
+
 		std::reverse(cubeMeshData.indices.begin(), cubeMeshData.indices.end());
 
-		D3D11AppBase::CreateVertexBuffer(cubeMeshData.vertices,
+		util::CreateVertexBuffer(m_d3dDevice, cubeMeshData.vertices,
 			m_cubeMapping.cubeMesh->vertexBuffer);
 		m_cubeMapping.cubeMesh->m_indexCount = UINT(cubeMeshData.indices.size());
-		D3D11AppBase::CreateIndexBuffer(cubeMeshData.indices,
+		CreateIndexBuffer(cubeMeshData.indices,
 			m_cubeMapping.cubeMesh->indexBuffer);
 
 		// 쉐이더 초기화
@@ -67,11 +73,11 @@ namespace graphics
 			 D3D11_INPUT_PER_VERTEX_DATA, 0},
 		};
 
-		D3D11AppBase::CreateVertexShaderAndInputLayout(
+		D3D11EngineBase::CreateVertexShaderAndInputLayout(
 			L"CubeVS.hlsl", basicInputElements,
 			m_cubeMapping.vertexShader, m_cubeMapping.inputLayout);
 
-		D3D11AppBase::CreatePixelShader(L"CubePS.hlsl",
+		D3D11EngineBase::CreatePixelShader(L"CubePS.hlsl",
 			m_cubeMapping.pixelShader);
 
 		// 기타
@@ -81,7 +87,7 @@ namespace graphics
 	bool D3D11Renderer::Initialize()
 	{
 		// Initialize Essentials
-		if (!D3D11AppBase::Initialize())
+		if (!D3D11EngineBase::Initialize())
 			return false;
 
 		//Fbx SDK -> 보류
@@ -126,6 +132,8 @@ namespace graphics
 
 		meshes[0].textureFilename = "D:/earth.jpg";
 
+		D3D11EngineBase::CreateTexture("D:/sp_env.jpg", temp_tex, temp_srv);
+
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
 		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 25, 25);
@@ -133,10 +141,10 @@ namespace graphics
 
 		//m_mesh = std::make_shared<Mesh>();
 
-		//D3D11AppBase::CreateVertexBuffer(meshData.vertices, m_mesh->vertexBuffer);
+		//D3D11EngineBase::CreateVertexBuffer(meshData.vertices, m_mesh->vertexBuffer);
 		//// 인덱스 버퍼 만들기
 		//m_mesh->m_indexCount = UINT(meshData.indices.size());
-		//D3D11AppBase::CreateIndexBuffer(meshData.indices, m_mesh->indexBuffer);
+		//D3D11EngineBase::CreateIndexBuffer(meshData.indices, m_mesh->indexBuffer);
 
 		// ConstantBuffer 만들기
 		m_basicVertexConstantBufferData.world = XMMatrixIdentity();
@@ -146,21 +154,21 @@ namespace graphics
 		ComPtr<ID3D11Buffer> vertexConstantBuffer;
 		ComPtr<ID3D11Buffer> pixelConstantBuffer;
 
-		D3D11AppBase::CreateConstantBuffer(m_basicVertexConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice,m_basicVertexConstantBufferData,
 			vertexConstantBuffer);
-		D3D11AppBase::CreateConstantBuffer(m_basicPixelConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice,m_basicPixelConstantBufferData,
 			pixelConstantBuffer);
 
 		for (const auto& meshData : meshes) {
 			auto newMesh = std::make_shared<Mesh>();
-			D3D11AppBase::CreateVertexBuffer(meshData.vertices, newMesh->vertexBuffer);
+			util::CreateVertexBuffer(m_d3dDevice,meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
-			D3D11AppBase::CreateIndexBuffer(meshData.indices, newMesh->indexBuffer);
+			CreateIndexBuffer(meshData.indices, newMesh->indexBuffer);
 
 			if (!meshData.textureFilename.empty()) {
 
 				std::cout << meshData.textureFilename << '\n';
-				D3D11AppBase::CreateTexture(meshData.textureFilename, newMesh->texture,
+				D3D11EngineBase::CreateTexture(meshData.textureFilename, newMesh->texture,
 					newMesh->textureResourceView);
 			}
 
@@ -189,10 +197,10 @@ namespace graphics
 			// 4 * 3 은 POSITION = float[3], 4byte*3 다음 데이터부터 시작
 		};
 
-		D3D11AppBase::CreateVertexShaderAndInputLayout(L"BasicVertexShader.hlsl", inputElements, m_colorVertexShader,
+		D3D11EngineBase::CreateVertexShaderAndInputLayout(L"BasicVertexShader.hlsl", inputElements, m_colorVertexShader,
 			m_colorInputLayout);
 
-		D3D11AppBase::CreatePixelShader(L"BasicPixelShader.hlsl", m_colorPixelShader);
+		D3D11EngineBase::CreatePixelShader(L"BasicPixelShader.hlsl", m_colorPixelShader);
 
 
 		// 노멀 벡터 그리기
@@ -221,16 +229,16 @@ namespace graphics
 		}
 
 		// TODO: 여기에 필요한 내용들 작성
-		D3D11AppBase::CreateVertexBuffer(normalVertices, m_normalLines->vertexBuffer);
+		util::CreateVertexBuffer(m_d3dDevice,normalVertices, m_normalLines->vertexBuffer);
 		m_normalLines->m_indexCount = UINT(normalIndices.size());
-		D3D11AppBase::CreateIndexBuffer(normalIndices, m_normalLines->indexBuffer);
-		D3D11AppBase::CreateConstantBuffer(m_normalVertexConstantBufferData,
+		CreateIndexBuffer(normalIndices, m_normalLines->indexBuffer);
+		util::CreateConstantBuffer(m_d3dDevice,m_normalVertexConstantBufferData,
 			m_normalLines->vertexConstantBuffer);
 
-		D3D11AppBase::CreateVertexShaderAndInputLayout(
+		D3D11EngineBase::CreateVertexShaderAndInputLayout(
 			L"NormalVertexShader.hlsl", inputElements, m_normalVertexShader,
 			m_colorInputLayout);
-		D3D11AppBase::CreatePixelShader(L"NormalPixelShader.hlsl", m_normalPixelShader);
+		D3D11EngineBase::CreatePixelShader(L"NormalPixelShader.hlsl", m_normalPixelShader);
 
 		return true;
 	}
@@ -272,7 +280,7 @@ namespace graphics
 			XMMatrixTranspose(m_basicVertexConstantBufferData.view);
 
 		// 프로젝션
-		m_aspect = D3D11AppBase::GetAspectRatio();
+		m_aspect = D3D11EngineBase::GetAspectRatio();
 		if (m_usePerspectiveProjection) {
 			m_basicVertexConstantBufferData.projection =
 				XMMatrixPerspectiveFovLH(XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
@@ -284,7 +292,7 @@ namespace graphics
 		m_basicVertexConstantBufferData.projection = XMMatrixTranspose(m_basicVertexConstantBufferData.projection);
 
 		// Constant를 CPU에서 GPU로 복사
-		D3D11AppBase::UpdateBuffer(m_basicVertexConstantBufferData, m_meshes[0]->vertexConstantBuffer);
+		util::UpdateBuffer(m_d3dContext,m_basicVertexConstantBufferData, m_meshes[0]->vertexConstantBuffer);
 
 		auto basicPixelData{ m_basicPixelConstantBufferData };
 
@@ -300,13 +308,13 @@ namespace graphics
 			}
 		}
 
-		D3D11AppBase::UpdateBuffer(basicPixelData,
+		util::UpdateBuffer(m_d3dContext,basicPixelData,
 			m_meshes[0]->pixelConstantBuffer);
 
 		// 노멀 벡터 그리기
 		if (m_drawNormals && m_dirtyFlag) {
 
-			D3D11AppBase::UpdateBuffer(m_normalVertexConstantBufferData,
+			util::UpdateBuffer(m_d3dContext,m_normalVertexConstantBufferData,
 				m_normalLines->vertexConstantBuffer);
 
 			m_dirtyFlag = false;
@@ -317,7 +325,7 @@ namespace graphics
 		m_basicVertexConstantBufferData.world = XMMatrixIdentity();
 		// Transpose()도 생략 가능
 
-		D3D11AppBase::UpdateBuffer(m_basicVertexConstantBufferData,
+		util::UpdateBuffer(m_d3dContext,m_basicVertexConstantBufferData,
 			m_cubeMapping.cubeMesh->vertexConstantBuffer);
 
 		m_basicPixelConstantBufferData.material.diffuse =
@@ -397,7 +405,7 @@ namespace graphics
 		}
 
 		// 큐브매핑
-		// TODO:
+		// 맨 끝에서 렌더링을 진행해도 Depth Buffer가 처리해준다.
 		m_d3dContext->IASetInputLayout(m_cubeMapping.inputLayout.Get());
 		m_d3dContext->IASetVertexBuffers(
 			0, 1, m_cubeMapping.cubeMesh->vertexBuffer.GetAddressOf(), &stride,
@@ -410,9 +418,13 @@ namespace graphics
 		m_d3dContext->VSSetConstantBuffers(
 			0, 1, m_cubeMapping.cubeMesh->vertexConstantBuffer.GetAddressOf());
 
-		ID3D11ShaderResourceView* views[1] = {
-			m_cubeMapping.cubemapRV.Get() };
-		m_d3dContext->PSSetShaderResources(0, 1, views);
+		//ID3D11ShaderResourceView* views[1] = {
+		//	m_cubeMapping.cubemapRV.Get() };
+		ID3D11ShaderResourceView* views[2] = {
+			m_cubeMapping.diffuseSRV.Get(),
+			m_cubeMapping.specularSRV.Get() 
+		};
+		m_d3dContext->PSSetShaderResources(0, 2, views);
 
 		m_d3dContext->PSSetShader(m_cubeMapping.pixelShader.Get(), 0, 0);
 		m_d3dContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
