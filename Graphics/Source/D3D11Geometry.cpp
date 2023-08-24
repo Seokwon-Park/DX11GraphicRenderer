@@ -226,7 +226,7 @@ namespace graphics
 				// https://www.khanacademy.org/math/multivariable-calculus/integrating-multivariable-functions/line-integrals-in-vector-fields-articles/a/constructing-a-unit-normal-vector-to-curve
 				v.normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
 
-				// 물결 모양 평면
+				// 물결 모양 평면w
 				// v.position.z = sin(i * dx * 10.0f) * 0.1f;
 				// sin 그래프의 normal을 대입
 				// v.normal = XMFLOAT3(cos(i * dx * 10.0f), 0.0f, -1.0f);
@@ -297,15 +297,16 @@ namespace graphics
 
 		for (int j = 0; j < numStacks; j++) {
 			for (int i = 0; i < numSlices; i++) {
+				int w = numSlices + 1;
 				// 첫번째 삼각형
-				indices.push_back(i + numSlices * j);
-				indices.push_back(i + numSlices * (j + 1));
-				indices.push_back(i + 1 + numSlices * (j + 1));
+				indices.push_back(i + w * j);
+				indices.push_back(i + w * (j + 1));
+				indices.push_back(i + 1 + w * (j + 1));
 
 				// 두 번째 삼각형
-				indices.push_back(i + numSlices * j);
-				indices.push_back(i + 1 + numSlices * (j + 1));
-				indices.push_back(i + 1 + numSlices * j);
+				indices.push_back(i + w * j);
+				indices.push_back(i + 1 + w * (j + 1));
+				indices.push_back(i + 1 + w * j);
 			}
 		}
 

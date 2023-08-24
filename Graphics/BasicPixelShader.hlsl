@@ -65,7 +65,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
 
 
-    return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, uv) : float4(color, 1.0);
+    return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) : float4(color, 1.0);
 
 }
 

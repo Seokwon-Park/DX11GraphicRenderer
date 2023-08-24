@@ -44,7 +44,8 @@ namespace graphics
 		// - 세상이 커다란 박스 안에 갇혀 있는 구조입니다.
 		// - D3D11_CULL_MODE::D3D11_CULL_NONE 또는 삼각형 뒤집기
 		// - 예시) std::reverse(myvector.begin(),myvector.end());
-		MeshData cubeMeshData = Geometry::MakeSphere(20.f, 30, 30);
+		//MeshData cubeMeshData = Geometry::MakeIcosahedron();
+		MeshData cubeMeshData = Geometry::MakeSphere(20.f, 3, 3);
 		std::reverse(cubeMeshData.indices.begin(), cubeMeshData.indices.end());
 
 		D3D11AppBase::CreateVertexBuffer(cubeMeshData.vertices,
@@ -112,8 +113,10 @@ namespace graphics
 		//std::vector<MeshData> meshes = { Geometry::MakePlane(2.f, Axis::x, Axis::y) };
 		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("c:/zelda/zeldaPosed001.fbx");
 		//std::vector<MeshData> meshes = { Geometry::MakeTetrahedron(1.f) };
-		//std::vector<MeshData> meshes = { Geometry::MakeIcosahedron(1.f) };
-		std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1) };
+		//std::vector<MeshData> meshes = { Geometry::MakeIcosahedron() };
+		//std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1) };
+		std::vector<MeshData> meshes = { Geometry::MakeCylinder(.5f,.5f,3, 10,1) };
+		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 10, 10) };
 		//for (auto& meshData : meshes) {
 		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
 		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
