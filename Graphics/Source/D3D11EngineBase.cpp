@@ -184,7 +184,7 @@ namespace graphics
 					NULL,
 					NULL,
 					NULL,
-					L"D3D11GraphicsRenderer", // lpszClassName, L-string
+					L"DX11GraphicsRenderer", // lpszClassName, L-string
 					NULL };
 
 		// The RegisterClass function has been superseded by the RegisterClassEx function.

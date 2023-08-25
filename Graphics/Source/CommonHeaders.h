@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 #include <tuple>
-#define NOMINMAX
+#define NOMINMAX //windows.h의 macro와 겹치기 때문에 헤더 위로
 //#ifdef max
 //    #undef max
 //#endif

@@ -1,7 +1,8 @@
 #include "Commons.hlsli"
 
 Texture2D g_texture0 : register(t0);
-TextureCube g_textureCube : register(t1);
+TextureCube g_textureCube1 : register(t1);
+TextureCube g_textureCube2 : register(t2);
 
 SamplerState g_sampler : register(s0);
 
@@ -67,10 +68,17 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
 
     float3 coord = reflect(-toEye, input.normalWorld);
+    
+    float4 diffuse = g_textureCube1.Sample(g_sampler, input.normalWorld);
+    float4 specular = g_textureCube2.Sample(g_sampler, coord);
 
+    diffuse.xyz *= material.diffuse;
+    specular *= pow((specular.x + specular.y + specular.z)/3.f, material.shininess);
+    specular.xyz *= material.specular;
+    
     //return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) : float4(color, 1.0);
-    return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) * g_textureCube.Sample(g_sampler, coord)
- : float4(color, 1.0) *  g_textureCube.Sample(g_sampler, coord);
+    return useTexture ? g_texture0.Sample(g_sampler, input.uv) + diffuse + specular
+                        : diffuse + specular;
 
 }
 

@@ -17,19 +17,19 @@ namespace graphics
 		ComPtr<ID3D11Texture2D> texture;
 		auto hr = CreateDDSTextureFromFileEx(
 			// this->m_device.Get(), L"./SaintPetersBasilica/saintpeters.dds", 0,
-			this->m_d3dDevice.Get(), L"d:/environment.dds", 0, D3D11_USAGE_DEFAULT,
+			this->m_d3dDevice.Get(), L"d:/CloudCommon_diffuseIBL.dds", 0, D3D11_USAGE_DEFAULT,
+			D3D11_BIND_SHADER_RESOURCE, 0,
+			D3D11_RESOURCE_MISC_TEXTURECUBE, // 큐브맵용 텍스춰
+			DDS_LOADER_FLAGS(false), (ID3D11Resource**)texture.GetAddressOf(),
+			this->m_cubeMapping.diffuseSRV.GetAddressOf(), nullptr);
+
+		hr = CreateDDSTextureFromFileEx(
+			// this->m_device.Get(), L"./SaintPetersBasilica/saintpeters.dds", 0,
+			this->m_d3dDevice.Get(), L"d:/CloudCommons_specularIBL.dds", 0, D3D11_USAGE_DEFAULT,
 			D3D11_BIND_SHADER_RESOURCE, 0,
 			D3D11_RESOURCE_MISC_TEXTURECUBE, // 큐브맵용 텍스춰
 			DDS_LOADER_FLAGS(false), (ID3D11Resource**)texture.GetAddressOf(),
 			this->m_cubeMapping.specularSRV.GetAddressOf(), nullptr);
-
-		//hr = CreateDDSTextureFromFileEx(
-		//	// this->m_device.Get(), L"./SaintPetersBasilica/saintpeters.dds", 0,
-		//	this->m_d3dDevice.Get(), L"d:/environment.dds", 0, D3D11_USAGE_DEFAULT,
-		//	D3D11_BIND_SHADER_RESOURCE, 0,
-		//	D3D11_RESOURCE_MISC_TEXTURECUBE, // 큐브맵용 텍스춰
-		//	DDS_LOADER_FLAGS(false), (ID3D11Resource**)texture.GetAddressOf(),
-		//	this->m_cubeMapping.diffuseSRV.GetAddressOf(), nullptr);
 
 		if (FAILED(hr)) {
 			std::cout << "CreateDDSTextureFromFileEx() failed" << std::endl;
@@ -42,9 +42,9 @@ namespace graphics
 		m_basicVertexConstantBufferData.projection = XMMatrixIdentity();
 		ComPtr<ID3D11Buffer> vertexConstantBuffer;
 		ComPtr<ID3D11Buffer> pixelConstantBuffer;
-		util::CreateConstantBuffer(m_d3dDevice,m_basicVertexConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice, m_basicVertexConstantBufferData,
 			m_cubeMapping.cubeMesh->vertexConstantBuffer);
-		util::CreateConstantBuffer(m_d3dDevice,m_basicPixelConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice, m_basicPixelConstantBufferData,
 			m_cubeMapping.cubeMesh->pixelConstantBuffer);
 
 		// 커다란 박스 초기화
@@ -161,14 +161,14 @@ namespace graphics
 		ComPtr<ID3D11Buffer> vertexConstantBuffer;
 		ComPtr<ID3D11Buffer> pixelConstantBuffer;
 
-		util::CreateConstantBuffer(m_d3dDevice,m_basicVertexConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice, m_basicVertexConstantBufferData,
 			vertexConstantBuffer);
-		util::CreateConstantBuffer(m_d3dDevice,m_basicPixelConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice, m_basicPixelConstantBufferData,
 			pixelConstantBuffer);
 
 		for (const auto& meshData : meshes) {
 			auto newMesh = std::make_shared<Mesh>();
-			util::CreateVertexBuffer(m_d3dDevice,meshData.vertices, newMesh->vertexBuffer);
+			util::CreateVertexBuffer(m_d3dDevice, meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
 			CreateIndexBuffer(meshData.indices, newMesh->indexBuffer);
 
@@ -235,10 +235,10 @@ namespace graphics
 			offset += meshData.vertices.size();
 		}
 
-		util::CreateVertexBuffer(m_d3dDevice,normalVertices, m_normalLines->vertexBuffer);
+		util::CreateVertexBuffer(m_d3dDevice, normalVertices, m_normalLines->vertexBuffer);
 		m_normalLines->m_indexCount = UINT(normalIndices.size());
 		CreateIndexBuffer(normalIndices, m_normalLines->indexBuffer);
-		util::CreateConstantBuffer(m_d3dDevice,m_normalVertexConstantBufferData,
+		util::CreateConstantBuffer(m_d3dDevice, m_normalVertexConstantBufferData,
 			m_normalLines->vertexConstantBuffer);
 
 		D3D11EngineBase::CreateVertexShaderAndInputLayout(
@@ -298,7 +298,7 @@ namespace graphics
 		m_basicVertexConstantBufferData.projection = XMMatrixTranspose(m_basicVertexConstantBufferData.projection);
 
 		// Constant를 CPU에서 GPU로 복사
-		util::UpdateBuffer(m_d3dContext,m_basicVertexConstantBufferData, m_meshes[0]->vertexConstantBuffer);
+		util::UpdateBuffer(m_d3dContext, m_basicVertexConstantBufferData, m_meshes[0]->vertexConstantBuffer);
 
 		auto basicPixelData{ m_basicPixelConstantBufferData };
 
@@ -314,13 +314,13 @@ namespace graphics
 			}
 		}
 
-		util::UpdateBuffer(m_d3dContext,basicPixelData,
+		util::UpdateBuffer(m_d3dContext, basicPixelData,
 			m_meshes[0]->pixelConstantBuffer);
 
 		// 노멀 벡터 그리기
 		if (m_drawNormals && m_dirtyFlag) {
 
-			util::UpdateBuffer(m_d3dContext,m_normalVertexConstantBufferData,
+			util::UpdateBuffer(m_d3dContext, m_normalVertexConstantBufferData,
 				m_normalLines->vertexConstantBuffer);
 
 			m_dirtyFlag = false;
@@ -331,7 +331,7 @@ namespace graphics
 		m_basicVertexConstantBufferData.world = XMMatrixIdentity();
 		// Transpose()도 생략 가능
 
-		util::UpdateBuffer(m_d3dContext,m_basicVertexConstantBufferData,
+		util::UpdateBuffer(m_d3dContext, m_basicVertexConstantBufferData,
 			m_cubeMapping.cubeMesh->vertexConstantBuffer);
 
 		m_basicPixelConstantBufferData.material.diffuse =
@@ -361,10 +361,6 @@ namespace graphics
 		// 어떤 쉐이더를 사용할지 설정
 		m_d3dContext->VSSetShader(m_colorVertexShader.Get(), 0, 0);
 
-		ID3D11ShaderResourceView* srv[1] = {
-			m_cubeMapping.specularSRV.Get()
-		};
-		m_d3dContext->PSSetShaderResources(0, 1, srv);
 		m_d3dContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 		m_d3dContext->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 
@@ -383,8 +379,14 @@ namespace graphics
 			m_d3dContext->VSSetConstantBuffers(
 				0, 1, mesh->vertexConstantBuffer.GetAddressOf());
 
+			ID3D11ShaderResourceView* srv[3] = {
+				mesh->textureResourceView.Get(),
+				m_cubeMapping.diffuseSRV.Get(),
+				m_cubeMapping.specularSRV.Get()
+			};
+
 			m_d3dContext->PSSetShaderResources(
-				0, 1, mesh->textureResourceView.GetAddressOf());
+				0, 3, srv);
 
 			m_d3dContext->PSSetConstantBuffers(
 				0, 1, mesh->pixelConstantBuffer.GetAddressOf());
@@ -434,7 +436,7 @@ namespace graphics
 		//	m_cubeMapping.specularSRV.Get() };
 		ID3D11ShaderResourceView* views[2] = {
 			m_cubeMapping.diffuseSRV.Get(),
-			m_cubeMapping.specularSRV.Get() 
+			m_cubeMapping.specularSRV.Get()
 		};
 		m_d3dContext->PSSetShaderResources(0, 2, views);
 
