@@ -22,7 +22,7 @@ namespace graphics
 
 	// ÀçÁú
 	struct Material {
-		XMFLOAT3 ambient = XMFLOAT3(0.0f, 0.0f, 0.0f);  // 12byte
+		XMFLOAT3 ambient = XMFLOAT3(0.2f, 0.2f, 0.2f);  // 12byte
 		float shininess = 256.0f;							// 4byte
 		XMFLOAT3 diffuse = XMFLOAT3(0.0f, 0.0f, 0.0f);  // 12byte
 		float pad1;										// 4byte

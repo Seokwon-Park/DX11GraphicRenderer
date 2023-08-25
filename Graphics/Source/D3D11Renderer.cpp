@@ -21,7 +21,15 @@ namespace graphics
 			D3D11_BIND_SHADER_RESOURCE, 0,
 			D3D11_RESOURCE_MISC_TEXTURECUBE, // 큐브맵용 텍스춰
 			DDS_LOADER_FLAGS(false), (ID3D11Resource**)texture.GetAddressOf(),
-			this->m_cubeMapping.cubemapRV.GetAddressOf(), nullptr);
+			this->m_cubeMapping.specularSRV.GetAddressOf(), nullptr);
+
+		//hr = CreateDDSTextureFromFileEx(
+		//	// this->m_device.Get(), L"./SaintPetersBasilica/saintpeters.dds", 0,
+		//	this->m_d3dDevice.Get(), L"d:/environment.dds", 0, D3D11_USAGE_DEFAULT,
+		//	D3D11_BIND_SHADER_RESOURCE, 0,
+		//	D3D11_RESOURCE_MISC_TEXTURECUBE, // 큐브맵용 텍스춰
+		//	DDS_LOADER_FLAGS(false), (ID3D11Resource**)texture.GetAddressOf(),
+		//	this->m_cubeMapping.diffuseSRV.GetAddressOf(), nullptr);
 
 		if (FAILED(hr)) {
 			std::cout << "CreateDDSTextureFromFileEx() failed" << std::endl;
@@ -90,7 +98,6 @@ namespace graphics
 		if (!D3D11EngineBase::Initialize())
 			return false;
 
-		//Fbx SDK -> 보류
 		InitializeCubeMapping();
 
 		// Texture sampler 만들기
@@ -121,18 +128,18 @@ namespace graphics
 		//std::vector<MeshData> meshes = { Geometry::MakeTetrahedron(1.f) };
 		//std::vector<MeshData> meshes = { Geometry::MakeIcosahedron() };
 		//std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1) };
-		std::vector<MeshData> meshes = { Geometry::MakeCylinder(.5f,.5f,3, 10,1) };
-		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 10, 10) };
-		//for (auto& meshData : meshes) {
-		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-		//	meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-		//}
+		//std::vector<MeshData> meshes = { Geometry::MakeCylinder(.5f,.5f,3, 10,1) };
+		std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 10, 10) };
+		for (auto& meshData : meshes) {
+			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
+		}
 
 		meshes[0].textureFilename = "D:/earth.jpg";
 
-		D3D11EngineBase::CreateTexture("D:/sp_env.jpg", temp_tex, temp_srv);
+		//D3D11EngineBase::CreateTexture("D:/sp_env.jpg", temp_tex, temp_srv);
 
 		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
 		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
@@ -228,7 +235,6 @@ namespace graphics
 			offset += meshData.vertices.size();
 		}
 
-		// TODO: 여기에 필요한 내용들 작성
 		util::CreateVertexBuffer(m_d3dDevice,normalVertices, m_normalLines->vertexBuffer);
 		m_normalLines->m_indexCount = UINT(normalIndices.size());
 		CreateIndexBuffer(normalIndices, m_normalLines->indexBuffer);
@@ -355,6 +361,10 @@ namespace graphics
 		// 어떤 쉐이더를 사용할지 설정
 		m_d3dContext->VSSetShader(m_colorVertexShader.Get(), 0, 0);
 
+		ID3D11ShaderResourceView* srv[1] = {
+			m_cubeMapping.specularSRV.Get()
+		};
+		m_d3dContext->PSSetShaderResources(0, 1, srv);
 		m_d3dContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 		m_d3dContext->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 
@@ -365,6 +375,8 @@ namespace graphics
 
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
+
+
 
 		// 버텍스/인덱스 버퍼 설정
 		for (const auto& mesh : m_meshes) {
@@ -419,7 +431,7 @@ namespace graphics
 			0, 1, m_cubeMapping.cubeMesh->vertexConstantBuffer.GetAddressOf());
 
 		//ID3D11ShaderResourceView* views[1] = {
-		//	m_cubeMapping.cubemapRV.Get() };
+		//	m_cubeMapping.specularSRV.Get() };
 		ID3D11ShaderResourceView* views[2] = {
 			m_cubeMapping.diffuseSRV.Get(),
 			m_cubeMapping.specularSRV.Get() 
