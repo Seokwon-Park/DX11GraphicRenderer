@@ -11,5 +11,4 @@ namespace graphics
 	XMFLOAT3 operator/=(XMFLOAT3& a, float b);
 
 	XMFLOAT3 CreateXMFLOAT3(float x);
-
 }

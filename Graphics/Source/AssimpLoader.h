@@ -3,8 +3,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-
-#include "D3D11CommonHeaders.h"
+#include <filesystem>
+#include "Mesh.h"
 
 namespace graphics {
     class AssimpLoader {

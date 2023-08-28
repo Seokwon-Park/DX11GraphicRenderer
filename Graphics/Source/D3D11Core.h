@@ -7,12 +7,12 @@ namespace graphics
 {
 	using namespace Microsoft::WRL;
 
-	class D3D11EngineBase
+	class D3D11Core
 	{
 	public:
 		// Constructor & Destructor
-		D3D11EngineBase();
-		virtual ~D3D11EngineBase();
+		D3D11Core();
+		virtual ~D3D11Core();
 
 		// Get AspectRatio
 		float GetAspectRatio() const;
@@ -36,6 +36,11 @@ namespace graphics
 		virtual void OnMouseUp(WPARAM btnState, int x, int y) {};
 		virtual void OnMouseMove(WPARAM btnState, int x, int y) {};
 
+		static void CreateDDSTexture(
+			ComPtr<ID3D11Device>& device,
+			const wchar_t* filename,
+			ComPtr<ID3D11ShaderResourceView>& srv);
+
 	// 상속받은 클래스에서도 접근이 가능한 함수들 = protected
 	protected: 
 		// Initialize Rendering Base
@@ -43,22 +48,18 @@ namespace graphics
 		bool InitDirect3D11();
 		bool InitGUI();
 
-
-		void SetViewport();
+		bool CreateDeviceAndContext();
+		DXGI_SWAP_CHAIN_DESC CreateSwapChainDesc();
 		bool CreateRenderTargetView();
+		void SetViewport();
 		bool CreateDepthBuffer();
 
-		void CreateVertexShaderAndInputLayout(
-			const std::wstring& filename,
-			const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
-			ComPtr<ID3D11VertexShader>& vertexShader,
-			ComPtr<ID3D11InputLayout>& inputLayout);
-		void CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader);
-		void CreateIndexBuffer(const std::vector<uint32_t>& indices, ComPtr<ID3D11Buffer>& m_indexBuffer);
-
-		void CreateTexture(const std::string filename,
+		void CreateTexture(
+			const std::string filename,
 			ComPtr<ID3D11Texture2D>	&texture,
 			ComPtr<ID3D11ShaderResourceView> &textureResourceView);
+
+
 
 	public:
 		// MainWindow Variables

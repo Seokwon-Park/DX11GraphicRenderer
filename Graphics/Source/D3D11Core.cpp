@@ -1,7 +1,10 @@
-#include "D3D11EngineBase.h"
+#include "D3D11Core.h"
+
+#include <directxtk/DDSTextureLoader.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -11,7 +14,7 @@ namespace graphics
 	{
 		// RegisterClassEx()에서 멤버 함수를 직접 등록할 수가 없기 때문에
 		// AppBass 클래스의 MsgProc함수를 이용하여 간접적으로 메시지를 처리
-		D3D11EngineBase* g_appBase = nullptr;
+		D3D11Core* g_appBase = nullptr;
 
 		// 렌더링 윈도우 너비 높이 설정
 		const int WIDTH = 1280;
@@ -23,16 +26,31 @@ namespace graphics
 			// g_appBase를 이용해서 간접적으로 멤버 함수 호출
 			return g_appBase->MsgProc(hwnd, msg, wParam, lParam);
 		}
-	}
+
+		void CheckResult(HRESULT hr, ID3DBlob* errorBlob) {
+			if (FAILED(hr)) {
+				// 파일이 없을 경우
+				if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0) {
+					std::cout << "File not found.\n";
+				}
+
+				// 에러 메시지가 있으면 출력
+				if (errorBlob) {
+					std::cout << "Shader compile error\n" << (char*)errorBlob->GetBufferPointer() << "\n";
+				}
+			}
+		}
+	}//anonymous namespace
+
 	//Constructor
-	D3D11EngineBase::D3D11EngineBase()
+	D3D11Core::D3D11Core()
 		:m_screenWidth(WIDTH), m_screenHeight(HEIHGT), m_mainWindow(0), m_screenViewport(D3D11_VIEWPORT())
 	{
 		g_appBase = this;
 	}
 
 	//Destructor
-	D3D11EngineBase::~D3D11EngineBase()
+	D3D11Core::~D3D11Core()
 	{
 		g_appBase = nullptr;
 
@@ -45,13 +63,13 @@ namespace graphics
 		DestroyWindow(m_mainWindow);
 	}
 
-	float D3D11EngineBase::GetAspectRatio() const
+	float D3D11Core::GetAspectRatio() const
 	{
 		return float(m_screenWidth - m_guiWidth) / m_screenHeight;
 	}
 
 	// 렌더러 실행 시
-	int D3D11EngineBase::Run()
+	int D3D11Core::Run()
 	{
 		// Main message loop
 		MSG msg = { 0 };
@@ -72,10 +90,10 @@ namespace graphics
 
 				// IMGUI
 				UpdateGUI(); // 추가적으로 사용할 GUI
-				auto size = ImGui::GetWindowSize();
+				//auto size = ImGui::GetWindowSize();
 
-				ImGui::SetWindowPos(ImVec2(0.f, 0.f));
-				m_guiWidth = size.x;
+				//ImGui::SetWindowPos(ImVec2(0.f, 0.f));
+				m_guiWidth = 0.f;
 
 				ImGui::End();
 				ImGui::Render(); // 렌더링할 것들 기록 끝
@@ -99,7 +117,7 @@ namespace graphics
 	}
 
 	// Initialize Essentials(if failed, return false)
-	bool D3D11EngineBase::Initialize()
+	bool D3D11Core::Initialize()
 	{
 		// Check Window Init
 		if (!InitMainWindow())
@@ -122,7 +140,7 @@ namespace graphics
 		return true;
 	}
 
-	LRESULT D3D11EngineBase::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	LRESULT D3D11Core::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
 			return true;
@@ -172,7 +190,7 @@ namespace graphics
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
-	bool D3D11EngineBase::InitMainWindow()
+	bool D3D11Core::InitMainWindow()
 	{
 		WNDCLASSEX wc = { sizeof(WNDCLASSEX),
 					CS_CLASSDC,
@@ -226,18 +244,88 @@ namespace graphics
 		return true;
 	}
 
-	bool D3D11EngineBase::InitDirect3D11()
+	bool D3D11Core::InitDirect3D11()
 	{
-		// 그래픽카드 사용
-		const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
-
 		// 1. m_d3dDevice, m_d3dContext, 
 		// 2. m_swapChain,
 		// 3. m_renderTargetView,
 		// 4. m_screenViewport,
 		// 5. m_rasterizerState
+		// 6. m_depthStencilState
 
 		// 1. m_d3dDevice와 m_d3dContext 생성
+		// 2. SwapChain 생성
+		if(!CreateDeviceAndContext())
+			return false;
+		
+		// 3. CreateRenderTargetView
+		if(!CreateRenderTargetView())
+			return false;
+
+		// 4. CreateViewport
+		SetViewport();
+
+		// 5. Create a solid rasterizer state
+		D3D11_RASTERIZER_DESC rastDesc;
+		ZeroMemory(&rastDesc, sizeof(D3D11_RASTERIZER_DESC)); // Need this
+		rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+		// rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+		rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+		rastDesc.FrontCounterClockwise = false;
+		rastDesc.DepthClipEnable = true;
+
+		m_d3dDevice->CreateRasterizerState(&rastDesc, m_solidRasterizerState.GetAddressOf());
+
+		// Create a wired rasterizer state
+		rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+
+		m_d3dDevice->CreateRasterizerState(&rastDesc, m_wiredRasterizerState.GetAddressOf());
+
+		// Create depth buffer
+		CreateDepthBuffer();
+
+		// Create depth stencil state
+		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+		ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+		depthStencilDesc.DepthEnable = true; // false
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+		depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+		if (FAILED(m_d3dDevice->CreateDepthStencilState(&depthStencilDesc,
+			m_depthStencilState.GetAddressOf()))) {
+			std::cout << "CreateDepthStencilState() failed.\n";
+			return false;
+		}
+
+		return true;
+	}
+	bool D3D11Core::InitGUI()
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		(void)io;
+		io.DisplaySize = ImVec2(float(m_screenWidth), float(m_screenHeight));
+		ImGui::StyleColorsLight();
+
+		// Setup Platform/Renderer backends
+		if (!ImGui_ImplDX11_Init(m_d3dDevice.Get(), m_d3dContext.Get())) {
+			return false;
+		}
+
+		if (!ImGui_ImplWin32_Init(m_mainWindow)) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+
+	bool D3D11Core::CreateDeviceAndContext()
+	{
+		// 그래픽카드 사용하도록 설정
+		const D3D_DRIVER_TYPE driverType = D3D_DRIVER_TYPE_HARDWARE;
+
 		UINT createDeviceFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
 		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -288,7 +376,28 @@ namespace graphics
 		}
 		// m_numQualityLevels = 0 // MSAA 끄기
 
-		// 2. SwapChain 생성
+		DXGI_SWAP_CHAIN_DESC sd = CreateSwapChainDesc();
+
+		ThrowIfFailed(D3D11CreateDeviceAndSwapChain(
+			0, // Default adapter
+			driverType,
+			0, // No software device
+			createDeviceFlags,
+			featureLevels,
+			1,
+			D3D11_SDK_VERSION,
+			&sd,
+			m_swapChain.GetAddressOf(),
+			m_d3dDevice.GetAddressOf()
+			, &featureLevel,
+			m_d3dContext.GetAddressOf()));
+
+		return true;
+	}
+
+
+	DXGI_SWAP_CHAIN_DESC D3D11Core::CreateSwapChainDesc()
+	{
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.BufferDesc.Width = m_screenWidth;               // set the back buffer width
@@ -313,117 +422,11 @@ namespace graphics
 			sd.SampleDesc.Quality = 0;
 		}
 
-		ThrowIfFailed(D3D11CreateDeviceAndSwapChain(
-			0, // Default adapter
-			driverType,
-			0, // No software device
-			createDeviceFlags,
-			featureLevels,
-			1,
-			D3D11_SDK_VERSION,
-			&sd,
-			m_swapChain.GetAddressOf(),
-			m_d3dDevice.GetAddressOf()
-			, &featureLevel,
-			m_d3dContext.GetAddressOf()));
-
-		// CreateRenderTarget
-		CreateRenderTargetView();
-
-		SetViewport();
-
-		// Create a solid rasterizer state
-		D3D11_RASTERIZER_DESC rastDesc;
-		ZeroMemory(&rastDesc, sizeof(D3D11_RASTERIZER_DESC)); // Need this
-		rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-		// rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
-		rastDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
-		rastDesc.FrontCounterClockwise = false;
-		rastDesc.DepthClipEnable = true;
-
-		m_d3dDevice->CreateRasterizerState(&rastDesc, m_solidRasterizerState.GetAddressOf());
-
-		// Create a wired rasterizer state
-		rastDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
-
-		m_d3dDevice->CreateRasterizerState(&rastDesc, m_wiredRasterizerState.GetAddressOf());
-
-
-
-
-		// Create depth buffer
-		CreateDepthBuffer();
-
-		// Create depth stencil state
-		D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-		ZeroMemory(&depthStencilDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
-		depthStencilDesc.DepthEnable = true; // false
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
-		depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
-		if (FAILED(m_d3dDevice->CreateDepthStencilState(&depthStencilDesc,
-			m_depthStencilState.GetAddressOf()))) {
-			std::cout << "CreateDepthStencilState() failed.\n";
-		}
-
-		return true;
-	}
-	bool D3D11EngineBase::InitGUI()
-	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		(void)io;
-		io.DisplaySize = ImVec2(float(m_screenWidth), float(m_screenHeight));
-		ImGui::StyleColorsLight();
-
-		// Setup Platform/Renderer backends
-		if (!ImGui_ImplDX11_Init(m_d3dDevice.Get(), m_d3dContext.Get())) {
-			return false;
-		}
-
-		if (!ImGui_ImplWin32_Init(m_mainWindow)) {
-			return false;
-		}
-
-		return true;
+		return sd;
 	}
 
-	void CheckResult(HRESULT hr, ID3DBlob* errorBlob) {
-		if (FAILED(hr)) {
-			// 파일이 없을 경우
-			if ((hr & D3D11_ERROR_FILE_NOT_FOUND) != 0) {
-				std::cout << "File not found.\n";
-			}
 
-			// 에러 메시지가 있으면 출력
-			if (errorBlob) {
-				std::cout << "Shader compile error\n" << (char*)errorBlob->GetBufferPointer() << "\n";
-			}
-		}
-	}
-
-	void D3D11EngineBase::SetViewport()
-	{
-		static float previousGuiWidth = m_guiWidth;
-		if (previousGuiWidth != m_guiWidth)
-		{
-			previousGuiWidth = m_guiWidth;
-
-			// Set the viewport
-			ZeroMemory(&m_screenViewport, sizeof(D3D11_VIEWPORT));
-			m_screenViewport.TopLeftX = float(m_guiWidth);
-			m_screenViewport.TopLeftY = 0;
-			m_screenViewport.Width = float(m_screenWidth - m_guiWidth);
-			m_screenViewport.Height = float(m_screenHeight);
-			// m_screenViewport.Width = static_cast<float>(m_screenHeight);
-			m_screenViewport.MinDepth = 0.0f;
-			m_screenViewport.MaxDepth = 1.0f; // Note: important for depth buffering
-
-			m_d3dContext->RSSetViewports(1, &m_screenViewport);
-		}
-	}
-
-	bool D3D11EngineBase::CreateRenderTargetView()
+	bool D3D11Core::CreateRenderTargetView()
 	{
 		ComPtr<ID3D11Texture2D> backBuffer;
 		m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
@@ -437,7 +440,30 @@ namespace graphics
 		}
 		return true;
 	}
-	bool D3D11EngineBase::CreateDepthBuffer()
+
+	void D3D11Core::SetViewport()
+	{
+		//초기값을 0보다 작게 설정
+		static float previousGuiWidth = -1.f;
+		if (previousGuiWidth != m_guiWidth)
+		{
+			previousGuiWidth = m_guiWidth;
+
+			// Set the viewport
+			ZeroMemory(&m_screenViewport, sizeof(D3D11_VIEWPORT));
+			m_screenViewport.TopLeftX = float(m_guiWidth);
+			m_screenViewport.TopLeftY = 0;
+			m_screenViewport.Width = float(m_screenWidth - m_guiWidth);
+			m_screenViewport.Height = float(m_screenHeight);
+			//m_screenViewport.Width = static_cast<float>(m_screenHeight);
+			m_screenViewport.MinDepth = 0.0f;
+			m_screenViewport.MaxDepth = 1.0f;
+
+			m_d3dContext->RSSetViewports(1, &m_screenViewport);
+		}
+	}
+
+	bool D3D11Core::CreateDepthBuffer()
 	{
 		D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
 		depthStencilBufferDesc.Width = m_screenWidth;
@@ -469,93 +495,9 @@ namespace graphics
 		return true;
 	}
 
-	void D3D11EngineBase::CreateVertexShaderAndInputLayout(
-		const std::wstring& filename,
-		const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
-		ComPtr<ID3D11VertexShader>& vertexShader,
-		ComPtr<ID3D11InputLayout>& inputLayout) {
 
-		ComPtr<ID3DBlob> shaderBlob;
-		ComPtr<ID3DBlob> errorBlob;
 
-		UINT compileFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)
-		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-		// 주의: 쉐이더의 시작점의 이름이 "main"인 함수로 지정
-		HRESULT hr =
-			D3DCompileFromFile(
-				filename.c_str(),
-				0,
-				D3D_COMPILE_STANDARD_FILE_INCLUDE,
-				"main",
-				"vs_5_0",
-				compileFlags,
-				0,
-				&shaderBlob,
-				&errorBlob);
-
-		CheckResult(hr, errorBlob.Get());
-
-		m_d3dDevice->CreateVertexShader(
-			shaderBlob->GetBufferPointer(),
-			shaderBlob->GetBufferSize(),
-			NULL,
-			&vertexShader);
-
-		m_d3dDevice->CreateInputLayout(inputElements.data(), UINT(inputElements.size()),
-			shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(),
-			&inputLayout);
-	}
-
-	void D3D11EngineBase::CreatePixelShader(const std::wstring& filename, ComPtr<ID3D11PixelShader>& pixelShader) {
-		ComPtr<ID3DBlob> shaderBlob;
-		ComPtr<ID3DBlob> errorBlob;
-
-		UINT compileFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)
-		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-		// 주의: 쉐이더의 시작점의 이름이 "main"인 함수로 지정
-		HRESULT hr = D3DCompileFromFile(
-			filename.c_str(),
-			0,
-			D3D_COMPILE_STANDARD_FILE_INCLUDE, // 쉐이더에서 include를 사용할 수 있도록 설정
-			"main",
-			"ps_5_0",
-			compileFlags,
-			0,
-			&shaderBlob,
-			&errorBlob);
-
-		CheckResult(hr, errorBlob.Get());
-
-		m_d3dDevice->CreatePixelShader(
-			shaderBlob->GetBufferPointer(),
-			shaderBlob->GetBufferSize(), NULL,
-			&pixelShader);
-	}
-
-	void D3D11EngineBase::CreateIndexBuffer(const std::vector<uint32_t>& indices,
-		ComPtr<ID3D11Buffer>& m_indexBuffer) {
-		D3D11_BUFFER_DESC bufferDesc = {};
-		bufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // 초기화 후 변경X
-		bufferDesc.ByteWidth = UINT(sizeof(uint32_t) * indices.size());
-		bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		bufferDesc.CPUAccessFlags = 0; // 0 if no CPU access is necessary.
-		bufferDesc.StructureByteStride = sizeof(uint32_t);
-
-		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-		indexBufferData.pSysMem = indices.data();
-		indexBufferData.SysMemPitch = 0;
-		indexBufferData.SysMemSlicePitch = 0;
-
-		m_d3dDevice->CreateBuffer(&bufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
-	}
-
-	void D3D11EngineBase::CreateTexture(const std::string filename,
+	void D3D11Core::CreateTexture(const std::string filename,
 		ComPtr<ID3D11Texture2D>& texture,
 		ComPtr<ID3D11ShaderResourceView>& textureResourceView)
 	{
@@ -592,11 +534,23 @@ namespace graphics
 		InitData.pSysMem = image.data();
 		InitData.SysMemPitch = txtDesc.Width * sizeof(uint8_t) * 4;
 		// InitData.SysMemSlicePitch = 0;
-
-	
-
+		
 		m_d3dDevice->CreateTexture2D(&txtDesc, &InitData, texture.GetAddressOf());
 		m_d3dDevice->CreateShaderResourceView(texture.Get(), nullptr,
 			textureResourceView.GetAddressOf());
+	}
+
+	void D3D11Core::CreateDDSTexture(
+		ComPtr<ID3D11Device>& device,
+		const wchar_t* filename, 
+		ComPtr<ID3D11ShaderResourceView>& srv)
+	{
+		ComPtr<ID3D11Texture2D> texture;
+
+		ThrowIfFailed(CreateDDSTextureFromFileEx(
+				device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
+				D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, DDS_LOADER_FLAGS(false),
+				(ID3D11Resource**)texture.GetAddressOf(),
+				srv.GetAddressOf(), nullptr));
 	}
 }

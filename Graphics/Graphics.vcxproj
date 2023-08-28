@@ -103,7 +103,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;$(ProjectDir)Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -120,7 +120,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;$(ProjectDir)Header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -135,25 +135,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\AssimpLoader.cpp" />
+    <ClCompile Include="Source\CubeMap.cpp" />
     <ClCompile Include="Source\D3D11Math.cpp" />
     <ClCompile Include="Source\D3D11Utilities.cpp" />
     <ClCompile Include="Source\FbxLoader.cpp" />
     <ClCompile Include="Source\D3D11Utilities.h" />
-    <ClCompile Include="Source\D3D11EngineBase.cpp" />
+    <ClCompile Include="Source\D3D11Core.cpp" />
     <ClCompile Include="Source\D3D11Renderer.cpp" />
     <ClCompile Include="Source\D3D11Geometry.cpp" />
     <ClCompile Include="Source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\AssimpLoader.h" />
+    <ClInclude Include="Source\BasicConstants.h" />
     <ClInclude Include="Source\CommonHeaders.h" />
-    <ClInclude Include="Source\CubeMapping.h" />
+    <ClInclude Include="Source\CubeMap.h" />
     <ClInclude Include="Source\D3D11CommonHeaders.h" />
-    <ClInclude Include="Source\D3D11EngineBase.h" />
+    <ClInclude Include="Source\D3D11Core.h" />
     <ClInclude Include="Source\D3D11Math.h" />
     <ClInclude Include="Source\D3D11Renderer.h" />
     <ClInclude Include="Source\D3D11Geometry.h" />
     <ClInclude Include="Source\FbxLoader.h" />
+    <ClInclude Include="Source\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl">

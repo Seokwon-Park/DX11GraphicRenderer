@@ -1,17 +1,12 @@
 #pragma once
+
 #include "D3D11CommonHeaders.h"
+#include "AssimpLoader.h"
+
+#include "Mesh.h"
 
 
 namespace graphics {
-    using namespace DirectX;
-    using namespace Microsoft::WRL;
-
-    // Vertex Struct
-    struct Vertex {
-        XMFLOAT3 position = XMFLOAT3();
-        XMFLOAT3 normal = XMFLOAT3();
-        XMFLOAT2 texcoord = XMFLOAT2();
-    };
 
     struct Axis
     {
@@ -21,25 +16,6 @@ namespace graphics {
             y,
             z = 2
         };
-    };
-
-    // Mesh Data
-    struct MeshData {
-        std::vector<Vertex> vertices;
-        std::vector<uint32_t> indices; 
-        std::string textureFilename;
-    };
-
-    struct Mesh {
-        ComPtr<ID3D11Buffer> vertexBuffer;
-        ComPtr<ID3D11Buffer> indexBuffer;
-        ComPtr<ID3D11Buffer> vertexConstantBuffer;
-        ComPtr<ID3D11Buffer> pixelConstantBuffer;
-
-        ComPtr<ID3D11Texture2D> texture;
-        ComPtr<ID3D11ShaderResourceView> textureResourceView;
-
-        UINT m_indexCount = 0;
     };
 
     class Geometry {

@@ -1,7 +1,5 @@
 #include "AssimpLoader.h"
 
-#include <filesystem>
-
 namespace graphics {
     void AssimpLoader::Load(std::string filename) {
         Assimp::Importer importer;

@@ -8,6 +8,5 @@
 
 #include <wrl.h> 
 
-#include "D3D11Math.h"
-#include "D3D11Utilities.h"
-#include "D3D11Geometry.h"
+using namespace DirectX;
+using namespace Microsoft::WRL;

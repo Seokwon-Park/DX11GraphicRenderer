@@ -1,6 +1,4 @@
-#include "CommonHeaders.h"
-#include "FbxLoader.h"
-#include "AssimpLoader.h"
+#include "D3D11Geometry.h"
 #include "D3D11Math.h"
 
 //LeftHanded CW

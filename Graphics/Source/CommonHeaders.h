@@ -6,14 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
-#include <tuple>
-#define NOMINMAX //windows.h의 macro와 겹치기 때문에 헤더 위로
-//#ifdef max
-//    #undef max
-//#endif
-//#ifdef min
-//    #undef min
-//#endif
+
 #include <windows.h>
 
 //Imgui.h>
