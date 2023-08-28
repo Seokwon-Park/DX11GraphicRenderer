@@ -54,13 +54,6 @@ namespace graphics
 		void SetViewport();
 		bool CreateDepthBuffer();
 
-		void CreateTexture(
-			const std::string filename,
-			ComPtr<ID3D11Texture2D>	&texture,
-			ComPtr<ID3D11ShaderResourceView> &textureResourceView);
-
-
-
 	public:
 		// MainWindow Variables
 		int m_screenWidth;

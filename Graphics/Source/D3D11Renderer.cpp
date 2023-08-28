@@ -2,7 +2,7 @@
 
 namespace graphics
 {
-	D3D11Renderer::D3D11Renderer() : D3D11Core(), m_basicVertexConstantBufferData() {}
+	D3D11Renderer::D3D11Renderer() : D3D11Core(){}
 
 	bool D3D11Renderer::Initialize()
 	{
@@ -16,151 +16,44 @@ namespace graphics
 			L"d:/Atrium_specularIBL.dds"))
 			return false;
 
-		// Texture sampler 만들기
-		D3D11_SAMPLER_DESC samplerDesc;
-		ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		samplerDesc.MinLOD = 0;
-		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		if (!meshes.Intialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
+			return false;
 
-		// Create the Sample State
-		m_d3dDevice->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
+		//// 노멀 벡터 그리기
+		//// 문제를 단순화하기 위해 InputLayout은 BasicVertexShader와 같이 사용합시다.
+		//m_normalLines = std::make_shared<Mesh>();
+		//// Mesh *m_normalLines = new Mesh();
 
-		//std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 4, 4) };
-		//for (auto& meshData : meshes) {
-		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
-		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
-		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
-		//	meshData = Geometry::SubdivideToSphere(1.f, meshData);
+		//std::vector<Vertex> normalVertices;
+		//std::vector<uint32_t> normalIndices;
+		//size_t offset = 0;
+		//for (const auto& meshData : meshes) {
+		//	for (size_t i = 0; i < meshData.vertices.size(); i++) {
+
+		//		auto v = meshData.vertices[i];
+
+		//		v.texcoord.x = 0.0f; // 시작점 표시
+		//		normalVertices.push_back(v);
+
+		//		v.texcoord.x = 1.0f; // 끝점 표시
+		//		normalVertices.push_back(v);
+
+		//		normalIndices.push_back(uint32_t(2 * (i + offset)));
+		//		normalIndices.push_back(uint32_t(2 * (i + offset) + 1));
+		//	}
+		//	offset += meshData.vertices.size();
 		//}
 
+		//CreateVertexBuffer(m_d3dDevice, normalVertices, m_normalLines->vertexBuffer);
+		//m_normalLines->m_indexCount = UINT(normalIndices.size());
+		//D3D11Utilities::CreateIndexBuffer(m_d3dDevice, normalIndices, m_normalLines->indexBuffer);
+		//CreateConstantBuffer(m_d3dDevice, m_normalVertexConstantBufferData,
+		//	m_normalLines->vertexConstantBuffer);
 
-		//std::vector<MeshData> meshes = { Geometry::MakePlane(2.f, Axis::x, Axis::y) };
-		//std::vector<MeshData> meshes = Geometry::ReadModelFromFile("c:/zelda/zeldaPosed001.fbx");
-		//std::vector<MeshData> meshes = { Geometry::MakeTetrahedron(1.f) };
-		//std::vector<MeshData> meshes = { Geometry::MakeIcosahedron() };
-		//std::vector<MeshData> meshes = { Geometry::MakeCube(1,1,1) };
-		//std::vector<MeshData> meshes = { Geometry::MakeCylinder(.5f,.5f,3, 10,1) };
-		std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 10, 10) };
-		for (auto& meshData : meshes) {
-			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-			meshData = Geometry::SubdivideToSphere(1.5f, meshData);
-		}
-
-		meshes[0].textureFilename = "D:/earth.jpg";
-
-		//D3D11Core::CreateTexture("D:/sp_env.jpg", temp_tex, temp_srv);
-
-		//meshData = Geometry::SubdivideToSphere(1.f, meshData);
-		//MeshData meshData = Geometry::MakeCylinder(2.f, 2.f, 2.f,100, 5);
-		//MeshData meshData = Geometry::MakeGrid(2.f, 2.f, 25, 25);
-		//MeshData meshData = Geometry::MakePlane();
-
-		//m_mesh = std::make_shared<Mesh>();
-
-		//D3D11Core::CreateVertexBuffer(meshData.vertices, m_mesh->vertexBuffer);
-		//// 인덱스 버퍼 만들기
-		//m_mesh->m_indexCount = UINT(meshData.indices.size());
-		//D3D11Core::CreateIndexBuffer(meshData.indices, m_mesh->indexBuffer);
-
-		// ConstantBuffer 만들기
-		m_basicVertexConstantBufferData.world = XMMatrixIdentity();
-		m_basicVertexConstantBufferData.view = XMMatrixIdentity();
-		m_basicVertexConstantBufferData.projection = XMMatrixIdentity();
-
-		ComPtr<ID3D11Buffer> vertexConstantBuffer;
-		ComPtr<ID3D11Buffer> pixelConstantBuffer;
-
-		CreateConstantBuffer(m_d3dDevice, m_basicVertexConstantBufferData,
-			vertexConstantBuffer);
-		CreateConstantBuffer(m_d3dDevice, m_basicPixelConstantBufferData,
-			pixelConstantBuffer);
-
-		for (const auto& meshData : meshes) {
-			auto newMesh = std::make_shared<Mesh>();
-			CreateVertexBuffer(m_d3dDevice, meshData.vertices, newMesh->vertexBuffer);
-			newMesh->m_indexCount = UINT(meshData.indices.size());
-			D3D11Utilities::CreateIndexBuffer(m_d3dDevice, meshData.indices, newMesh->indexBuffer);
-
-			if (!meshData.textureFilename.empty()) {
-
-				std::cout << meshData.textureFilename << '\n';
-				D3D11Core::CreateTexture(meshData.textureFilename, newMesh->texture,
-					newMesh->textureResourceView);
-			}
-
-			newMesh->vertexConstantBuffer = vertexConstantBuffer;
-			newMesh->pixelConstantBuffer = pixelConstantBuffer;
-
-			this->m_meshes.push_back(newMesh);
-		}
-
-		// 쉐이더 만들기
-
-		// Input-layout objects describe how vertex buffer data is streamed into the
-		// IA(Input-Assembler) pipeline stage.
-		// https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nf-d3d11-id3d11devicecontext-iasetinputlayout
-
-		// Input-Assembler Stage
-		// The purpose of the input-assembler stage is to read primitive data
-		// (points, lines and/or triangles) from user-filled buffers and assemble
-		// the data into primitives that will be used by the other pipeline stages.
-		// https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-input-assembler-stage
-
-		std::vector<D3D11_INPUT_ELEMENT_DESC> inputElements = {
-			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 4 * 3, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 4 * 3 + 4 * 3, D3D11_INPUT_PER_VERTEX_DATA, 0},
-			// 4 * 3 은 POSITION = float[3], 4byte*3 다음 데이터부터 시작
-		};
-
-		D3D11Utilities::CreateVertexShaderAndInputLayout(m_d3dDevice, L"BasicVertexShader.hlsl", inputElements, m_colorVertexShader,
-			m_colorInputLayout);
-
-		D3D11Utilities::CreatePixelShader(m_d3dDevice, L"BasicPixelShader.hlsl", m_colorPixelShader);
-
-
-		// 노멀 벡터 그리기
-		// 문제를 단순화하기 위해 InputLayout은 BasicVertexShader와 같이 사용합시다.
-		m_normalLines = std::make_shared<Mesh>();
-		// Mesh *m_normalLines = new Mesh();
-
-		std::vector<Vertex> normalVertices;
-		std::vector<uint32_t> normalIndices;
-		size_t offset = 0;
-		for (const auto& meshData : meshes) {
-			for (size_t i = 0; i < meshData.vertices.size(); i++) {
-
-				auto v = meshData.vertices[i];
-
-				v.texcoord.x = 0.0f; // 시작점 표시
-				normalVertices.push_back(v);
-
-				v.texcoord.x = 1.0f; // 끝점 표시
-				normalVertices.push_back(v);
-
-				normalIndices.push_back(uint32_t(2 * (i + offset)));
-				normalIndices.push_back(uint32_t(2 * (i + offset) + 1));
-			}
-			offset += meshData.vertices.size();
-		}
-
-		CreateVertexBuffer(m_d3dDevice, normalVertices, m_normalLines->vertexBuffer);
-		m_normalLines->m_indexCount = UINT(normalIndices.size());
-		D3D11Utilities::CreateIndexBuffer(m_d3dDevice, normalIndices, m_normalLines->indexBuffer);
-		CreateConstantBuffer(m_d3dDevice, m_normalVertexConstantBufferData,
-			m_normalLines->vertexConstantBuffer);
-
-		D3D11Utilities::CreateVertexShaderAndInputLayout(m_d3dDevice,
-			L"NormalVertexShader.hlsl", inputElements, m_normalVertexShader,
-			m_colorInputLayout);
-		D3D11Utilities::CreatePixelShader(m_d3dDevice, L"NormalPixelShader.hlsl", m_normalPixelShader);
+		//D3D11Utilities::CreateVertexShaderAndInputLayout(m_d3dDevice,
+		//	L"NormalVertexShader.hlsl", inputElements, m_normalVertexShader,
+		//	m_colorInputLayout);
+		//D3D11Utilities::CreatePixelShader(m_d3dDevice, L"NormalPixelShader.hlsl", m_normalPixelShader);
 
 		//Initialize Success
 		return true;
@@ -174,50 +67,50 @@ namespace graphics
 		//auto basicVertexData{ m_basicVertexConstantBufferData };
 
 		// 모델의 변환
-		m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
+		meshes.m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
 			XMMatrixRotationY(m_modelRotation.y) *
 			XMMatrixRotationX(m_modelRotation.x) *
 			XMMatrixRotationZ(m_modelRotation.z) *
 			XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
-		m_basicVertexConstantBufferData.world = XMMatrixTranspose(m_basicVertexConstantBufferData.world);
+		meshes.m_basicVertexConstantBufferData.world = XMMatrixTranspose(meshes.m_basicVertexConstantBufferData.world);
 
 		// 역행렬의 전치 행렬
-		m_basicVertexConstantBufferData.invTranspose = m_basicVertexConstantBufferData.world;
-		m_basicVertexConstantBufferData.invTranspose *= XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
-		m_basicVertexConstantBufferData.invTranspose =
-			XMMatrixInverse(nullptr, XMMatrixTranspose(m_basicVertexConstantBufferData.invTranspose));
+		meshes.m_basicVertexConstantBufferData.invTranspose = meshes.m_basicVertexConstantBufferData.world;
+		meshes.m_basicVertexConstantBufferData.invTranspose *= XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
+		meshes.m_basicVertexConstantBufferData.invTranspose =
+			XMMatrixInverse(nullptr, XMMatrixTranspose(meshes.m_basicVertexConstantBufferData.invTranspose));
 
 
 		// 시점 변환
-		m_basicVertexConstantBufferData.view =
+		meshes.m_basicVertexConstantBufferData.view =
 			XMMatrixRotationX(m_viewRot.x) *
 			XMMatrixRotationY(m_viewRot.y) *
 			XMMatrixRotationZ(m_viewRot.z) *
 			XMMatrixTranslation(0.0f, 0.0f, 2.0f);
 
 
-		XMStoreFloat3(&m_basicPixelConstantBufferData.eyeWorld, XMVector3Transform(
-			XMVectorZero(), XMMatrixInverse(nullptr, m_basicVertexConstantBufferData.view)));
+		XMStoreFloat3(&meshes.m_basicPixelConstantBufferData.eyeWorld, XMVector3Transform(
+			XMVectorZero(), XMMatrixInverse(nullptr, meshes.m_basicVertexConstantBufferData.view)));
 
-		m_basicVertexConstantBufferData.view =
-			XMMatrixTranspose(m_basicVertexConstantBufferData.view);
+		meshes.m_basicVertexConstantBufferData.view =
+			XMMatrixTranspose(meshes.m_basicVertexConstantBufferData.view);
 
 		// 프로젝션
 		m_aspect = D3D11Core::GetAspectRatio();
 		if (m_usePerspectiveProjection) {
-			m_basicVertexConstantBufferData.projection =
+			meshes.m_basicVertexConstantBufferData.projection =
 				XMMatrixPerspectiveFovLH(XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
 		}
 		else {
-			m_basicVertexConstantBufferData.projection =
+			meshes.m_basicVertexConstantBufferData.projection =
 				XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f, 1.0f, m_nearZ, m_farZ);
 		}
-		m_basicVertexConstantBufferData.projection = XMMatrixTranspose(m_basicVertexConstantBufferData.projection);
+		meshes.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(meshes.m_basicVertexConstantBufferData.projection);
 
 		// Constant를 CPU에서 GPU로 복사
-		UpdateBuffer(m_d3dContext, m_basicVertexConstantBufferData, m_meshes[0]->vertexConstantBuffer);
+		UpdateBuffer(m_d3dContext, meshes.m_basicVertexConstantBufferData, meshes.meshes[0]->vertexConstantBuffer);
 
-		auto basicPixelData{ m_basicPixelConstantBufferData };
+		auto basicPixelData{ meshes.m_basicPixelConstantBufferData };
 
 		// 여러 개 조명 사용 예시
 		for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -232,7 +125,7 @@ namespace graphics
 		}
 
 		UpdateBuffer(m_d3dContext, basicPixelData,
-			m_meshes[0]->pixelConstantBuffer);
+			meshes.meshes[0]->pixelConstantBuffer);
 
 		// 노멀 벡터 그리기
 		if (m_drawNormals && m_dirtyFlag) {
@@ -245,18 +138,18 @@ namespace graphics
 		}
 
 		// 큐브매핑을 위한 ConstantBuffers
-		m_basicVertexConstantBufferData.world = XMMatrixIdentity();
+		meshes.m_basicVertexConstantBufferData.world = XMMatrixIdentity();
 		// Transpose()도 생략 가능
 		m_cubeMap.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 
-		UpdateBuffer(m_d3dContext, m_basicVertexConstantBufferData,
+		UpdateBuffer(m_d3dContext, meshes.m_basicVertexConstantBufferData,
 			m_cubeMap.cubeMesh->vertexConstantBuffer);
 
-		m_basicPixelConstantBufferData.material.diffuse =
+		meshes.m_basicPixelConstantBufferData.material.diffuse =
 			CreateXMFLOAT3(m_materialDiffuse);
-		m_basicPixelConstantBufferData.material.specular =
+		meshes.m_basicPixelConstantBufferData.material.specular =
 			CreateXMFLOAT3(m_materialSpecular);
-		m_basicPixelConstantBufferData.material.fresnelR0=
+		meshes.m_basicPixelConstantBufferData.material.fresnelR0=
 			m_fresnelR0;
 	}
 
@@ -292,10 +185,8 @@ namespace graphics
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-
-
 		// 버텍스/인덱스 버퍼 설정
-		for (const auto& mesh : m_meshes) {
+		for (const auto& mesh : meshes.meshes) {
 			m_d3dContext->VSSetConstantBuffers(
 				0, 1, mesh->vertexConstantBuffer.GetAddressOf());
 
@@ -321,22 +212,22 @@ namespace graphics
 			m_d3dContext->DrawIndexed(mesh->m_indexCount, 0, 0);
 		}
 
-		if (m_drawNormals) {
-			m_d3dContext->VSSetShader(m_normalVertexShader.Get(), 0, 0);
+		//if (m_drawNormals) {
+		//	m_d3dContext->VSSetShader(m_normalVertexShader.Get(), 0, 0);
 
-			m_d3dContext->VSSetConstantBuffers(1, 1, m_normalLines->vertexConstantBuffer.GetAddressOf());
+		//	m_d3dContext->VSSetConstantBuffers(1, 1, m_normalLines->vertexConstantBuffer.GetAddressOf());
 
-			m_d3dContext->PSSetShader(m_normalPixelShader.Get(), 0, 0);
-			// m_d3dContext->IASetInputLayout(m_basicInputLayout.Get());
-			m_d3dContext->IASetVertexBuffers(
-				0, 1, m_normalLines->vertexBuffer.GetAddressOf(), &stride,
-				&offset);
-			m_d3dContext->IASetIndexBuffer(m_normalLines->indexBuffer.Get(),
-				DXGI_FORMAT_R32_UINT, 0);
+		//	m_d3dContext->PSSetShader(m_normalPixelShader.Get(), 0, 0);
+		//	// m_d3dContext->IASetInputLayout(m_basicInputLayout.Get());
+		//	m_d3dContext->IASetVertexBuffers(
+		//		0, 1, m_normalLines->vertexBuffer.GetAddressOf(), &stride,
+		//		&offset);
+		//	m_d3dContext->IASetIndexBuffer(m_normalLines->indexBuffer.Get(),
+		//		DXGI_FORMAT_R32_UINT, 0);
 
-			m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
-		}
+		//	m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		//	m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
+		//}
 
 		m_cubeMap.Render(m_d3dContext);
 	}
@@ -356,7 +247,7 @@ namespace graphics
 
 		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::TreeNode("General")) {
-			ImGui::Checkbox("Use Texture", &m_basicPixelConstantBufferData.useTexture);
+			ImGui::Checkbox("Use Texture", &meshes.m_basicPixelConstantBufferData.useTexture);
 			ImGui::Checkbox("usePerspectiveProjection", &m_usePerspectiveProjection);
 			ImGui::Checkbox("drawAsWire", &m_drawAsWire);
 			ImGui::Checkbox("drawNormals", &m_drawNormals);
@@ -385,7 +276,7 @@ namespace graphics
 		ImGui::SetNextItemOpen(false, ImGuiCond_Once);
 		if (ImGui::TreeNode("Lights")) {
 			ImGui::SliderFloat("Material Shininess",
-				&m_basicPixelConstantBufferData.material.shininess, 0.01f,
+				&meshes.m_basicPixelConstantBufferData.material.shininess, 0.01f,
 				20.0f);
 
 			if (ImGui::RadioButton("Directional Light", m_lightType == 0)) {

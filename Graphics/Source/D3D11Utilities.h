@@ -1,9 +1,9 @@
 #pragma once
-#include <d3d11.h>
-#include <d3dcompiler.h>
-#include <DirectXMath.h>
+#include "D3D11CommonHeaders.h"
 
 #include <wrl.h> 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include "CommonHeaders.h"
 
@@ -103,5 +103,11 @@ namespace graphics
 		static void CreatePixelShader(ComPtr<ID3D11Device>& device,
 			const wchar_t* filename,
 			ComPtr<ID3D11PixelShader>& pixelShader);
+
+		static void CreateTexture(
+			ComPtr<ID3D11Device> device,
+			const std::string filename,
+			ComPtr<ID3D11Texture2D>& texture,
+			ComPtr<ID3D11ShaderResourceView>& textureResourceView);
 	};
 }

@@ -2,10 +2,6 @@
 
 #include <directxtk/DDSTextureLoader.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace graphics
@@ -495,62 +491,17 @@ namespace graphics
 		return true;
 	}
 
-
-
-	void D3D11Core::CreateTexture(const std::string filename,
-		ComPtr<ID3D11Texture2D>& texture,
-		ComPtr<ID3D11ShaderResourceView>& textureResourceView)
-	{
-		int width, height, channels;
-
-		unsigned char* img =
-			stbi_load(filename.c_str(), &width, &height, &channels, 0);
-
-		//assert(channels == 4);
-
-		std::vector<uint8_t> image;
-
-		// 4채널로 만들어서 복사
-		image.resize(width * height * 4);
-		for (size_t i = 0; i < width * height; i++) {
-			for (size_t c = 0; c < 3; c++) {
-				image[4 * i + c] = img[i * channels + c];
-			}
-			image[4 * i + 3] = 255;
-		}
-
-		// Create texture.
-		D3D11_TEXTURE2D_DESC txtDesc = {};
-		txtDesc.Width = width;
-		txtDesc.Height = height;
-		txtDesc.MipLevels = txtDesc.ArraySize = 1;
-		txtDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		txtDesc.SampleDesc.Count = 1;
-		txtDesc.Usage = D3D11_USAGE_IMMUTABLE;
-		txtDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = image.data();
-		InitData.SysMemPitch = txtDesc.Width * sizeof(uint8_t) * 4;
-		// InitData.SysMemSlicePitch = 0;
-		
-		m_d3dDevice->CreateTexture2D(&txtDesc, &InitData, texture.GetAddressOf());
-		m_d3dDevice->CreateShaderResourceView(texture.Get(), nullptr,
-			textureResourceView.GetAddressOf());
-	}
-
 	void D3D11Core::CreateDDSTexture(
 		ComPtr<ID3D11Device>& device,
-		const wchar_t* filename, 
+		const wchar_t* filename,
 		ComPtr<ID3D11ShaderResourceView>& srv)
 	{
 		ComPtr<ID3D11Texture2D> texture;
 
 		ThrowIfFailed(CreateDDSTextureFromFileEx(
-				device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
-				D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, DDS_LOADER_FLAGS(false),
-				(ID3D11Resource**)texture.GetAddressOf(),
-				srv.GetAddressOf(), nullptr));
+			device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
+			D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, DDS_LOADER_FLAGS(false),
+			(ID3D11Resource**)texture.GetAddressOf(),
+			srv.GetAddressOf(), nullptr));
 	}
 }

@@ -5,6 +5,7 @@
 #include "D3D11Geometry.h"
 #include "D3D11Math.h"
 #include "D3D11Utilities.h"
+#include "MeshGroup.h"
 
 namespace graphics
 {
@@ -22,32 +23,14 @@ namespace graphics
 		virtual void Render() override;
 
 	protected:
-		std::vector<std::shared_ptr<Mesh>> m_meshes;
-
-		//Shaders
-		//Basic
-		ComPtr<ID3D11VertexShader> m_colorVertexShader;
-		ComPtr<ID3D11PixelShader> m_colorPixelShader;
-		ComPtr<ID3D11InputLayout> m_colorInputLayout;
+		MeshGroup meshes;
 
 		//Normal
 		ComPtr<ID3D11VertexShader> m_normalVertexShader;
 		ComPtr<ID3D11PixelShader> m_normalPixelShader;
 
-		// ConstantBufferData(Cpp) -> ConstantBuffer(Shader)
-		BasicVertexConstantBuffer m_basicVertexConstantBufferData;
-		BasicPixelConstantBuffer m_basicPixelConstantBufferData;
-
 		//Normal
 		NormalVertexConstantBuffer m_normalVertexConstantBufferData;
-
-		// Textures
-		ComPtr<ID3D11Texture2D> m_texture;
-		ComPtr<ID3D11ShaderResourceView> m_textureResourceView;
-		ComPtr<ID3D11SamplerState> m_samplerState;
-
-		ComPtr<ID3D11Texture2D> temp_tex;
-		ComPtr<ID3D11ShaderResourceView> temp_srv;
 
 		// perspective vs orthographic
 		bool m_usePerspectiveProjection = true;

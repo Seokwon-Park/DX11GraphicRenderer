@@ -34,6 +34,16 @@ namespace graphics
 		return res;
 	}
 
+	XMFLOAT3 operator*(XMFLOAT3& a, float b)
+	{
+		const XMVECTOR v1 = XMLoadFloat3(&a);
+		const XMVECTOR X = XMVectorScale(v1, b);
+		XMFLOAT3 res;
+		XMStoreFloat3(&res, X);
+
+		return res;
+	}
+
 	XMFLOAT3 operator/=(XMFLOAT3& a, float b)
 	{
 		const XMVECTOR v1 = XMLoadFloat3(&a);
