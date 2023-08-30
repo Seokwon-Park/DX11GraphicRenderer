@@ -1,5 +1,8 @@
 #include "D3D11Utilities.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 namespace graphics
 {
 	namespace {
@@ -42,7 +45,7 @@ namespace graphics
 
 	void D3D11Utilities::CreateVertexShaderAndInputLayout(
 		ComPtr<ID3D11Device>& device,
-		const wchar_t* filename,
+		const std::wstring& filename,
 		const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
 		ComPtr<ID3D11VertexShader>& vertexShader,
 		ComPtr<ID3D11InputLayout>& inputLayout) {
@@ -58,7 +61,7 @@ namespace graphics
 		// 주의: 쉐이더의 시작점의 이름이 "main"인 함수로 지정
 		HRESULT hr =
 			D3DCompileFromFile(
-				filename,
+				filename.c_str(),
 				0,
 				D3D_COMPILE_STANDARD_FILE_INCLUDE,
 				"main",
@@ -83,8 +86,9 @@ namespace graphics
 
 	void D3D11Utilities::CreatePixelShader(
 		ComPtr<ID3D11Device>& device, 
-		const wchar_t* filename,
-		ComPtr<ID3D11PixelShader>& pixelShader) {
+		const std::wstring& filename,
+		ComPtr<ID3D11PixelShader>& pixelShader) 
+	{
 		ComPtr<ID3DBlob> shaderBlob;
 		ComPtr<ID3DBlob> errorBlob;
 
@@ -95,7 +99,7 @@ namespace graphics
 
 		// 주의: 쉐이더의 시작점의 이름이 "main"인 함수로 지정
 		HRESULT hr = D3DCompileFromFile(
-			filename,
+			filename.c_str(),
 			0,
 			D3D_COMPILE_STANDARD_FILE_INCLUDE, // 쉐이더에서 include를 사용할 수 있도록 설정
 			"main",

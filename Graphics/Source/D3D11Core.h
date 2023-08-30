@@ -2,6 +2,7 @@
 
 #include "D3D11CommonHeaders.h"
 #include "CommonHeaders.h"
+#include "D3D11PostProcess.h"
 
 namespace graphics
 {
@@ -68,12 +69,15 @@ namespace graphics
 		ComPtr<ID3D11DeviceContext> m_d3dContext;
 		// ·»´õÅ¸°Ù ºä(RTV)
 		ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+		ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
 		// Swapchain
 		ComPtr<IDXGISwapChain> m_swapChain;
 		// RasterizerState
 		ComPtr<ID3D11RasterizerState> m_solidRasterizerState;
 		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
 		bool m_drawAsWire = false;
+
+		std::vector<std::shared_ptr<D3D11PostProcess>> m_filters;
 
 		// Depth buffer °ü·Ã
 		ComPtr<ID3D11Texture2D> m_depthStencilBuffer;

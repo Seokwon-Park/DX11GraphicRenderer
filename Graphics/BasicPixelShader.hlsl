@@ -20,7 +20,8 @@ cbuffer BasicPixelConstantBuffer : register(b0)
 };
 
 float3 SchlickFresnel(float3 fresnelR0, float3 edgeTint, float theta)
-{ //clamp parameters
+{ 
+    //clamp parameters
     float3 r = clamp(fresnelR0, 0, 0.99);
     float3 g = edgeTint;
     float3 r_sqrt = sqrt(r);
@@ -31,8 +32,7 @@ float3 SchlickFresnel(float3 fresnelR0, float3 edgeTint, float theta)
     k2 = max(k2, 0.0);
     float3 k = sqrt(k2);
 //compute n and k
-
-    
+       
     float3 rs_num = n * n + k2 - 2.f * n * theta + theta * theta;
     float3 rs_den = n * n + k2 + 2.f * n * theta + theta * theta;
     float3 rs = rs_num / rs_den;
@@ -133,7 +133,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
     }
     
     //return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) : float4(color, 1.0);
-    return useTexture ? diffuse * g_texture0.Sample(g_sampler, input.uv) + specular
+    return useTexture ? diffuse * g_texture0.Sample(g_sampler, input.uv) + specular + diffuse
                         : specular + diffuse;
 
 }

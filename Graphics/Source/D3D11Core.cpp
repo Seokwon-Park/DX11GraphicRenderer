@@ -316,7 +316,6 @@ namespace graphics
 	}
 
 
-
 	bool D3D11Core::CreateDeviceAndContext()
 	{
 		// 그래픽카드 사용하도록 설정

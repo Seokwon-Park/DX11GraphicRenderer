@@ -48,6 +48,9 @@
     <ClCompile Include="Source\MeshGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\D3D11PostProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\D3D11Renderer.h">
@@ -86,6 +89,9 @@
     <ClInclude Include="Source\MeshGroup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\D3D11PostProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl" />
@@ -94,6 +100,9 @@
     <FxCompile Include="NormalVertexShader.hlsl" />
     <FxCompile Include="CubePS.hlsl" />
     <FxCompile Include="CubeVS.hlsl" />
+    <FxCompile Include="SamplingVS.hlsl" />
+    <FxCompile Include="BlurXPS.hlsl" />
+    <FxCompile Include="SamplingPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Commons.hlsli" />

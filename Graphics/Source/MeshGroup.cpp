@@ -85,5 +85,7 @@ namespace graphics
 			m_colorInputLayout);
 
 		D3D11Utilities::CreatePixelShader(device, L"BasicPixelShader.hlsl", m_colorPixelShader);
+
+		return true;
 	}
 }

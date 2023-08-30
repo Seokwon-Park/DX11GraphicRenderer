@@ -1,9 +1,9 @@
 #pragma once
+
+
 #include "D3D11CommonHeaders.h"
 
 #include <wrl.h> 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #include "CommonHeaders.h"
 
@@ -95,13 +95,14 @@ namespace graphics
 
 		static void CreateVertexShaderAndInputLayout(
 			ComPtr<ID3D11Device>& device,
-			const wchar_t* filename,
+			const std::wstring& filename,
 			const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
 			ComPtr<ID3D11VertexShader>& vertexShader,
 			ComPtr<ID3D11InputLayout>& inputLayout);
 
-		static void CreatePixelShader(ComPtr<ID3D11Device>& device,
-			const wchar_t* filename,
+		static void CreatePixelShader(
+			ComPtr<ID3D11Device>& device,
+			const std::wstring& filename,
 			ComPtr<ID3D11PixelShader>& pixelShader);
 
 		static void CreateTexture(

@@ -15,6 +15,8 @@ namespace graphics
 	class D3D11Renderer : public D3D11Core
 	{
 	public:
+		void BuildFilters();
+
 		D3D11Renderer();
 
 		virtual bool Initialize() override;
@@ -23,7 +25,7 @@ namespace graphics
 		virtual void Render() override;
 
 	protected:
-		MeshGroup meshes;
+		MeshGroup my_Mesh1;
 
 		//Normal
 		ComPtr<ID3D11VertexShader> m_normalVertexShader;
@@ -65,5 +67,12 @@ namespace graphics
 		bool m_dirtyFlag = false;
 
 		CubeMap m_cubeMap;
+
+
+		int m_dirtyflag = 1; // 처음에 한 번 실행
+		int m_down = 16;
+		int m_repeat = 5;
+		float m_threshold = 0.3f;
+		float m_strength = 1.0f;
 	};
 } // namespace graphics
