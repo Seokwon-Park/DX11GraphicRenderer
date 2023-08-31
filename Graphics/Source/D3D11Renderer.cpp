@@ -4,72 +4,52 @@ namespace graphics
 {
 	void D3D11Renderer::BuildFilters() {
 
-		m_filters.clear();
+		m_postProcesses.clear();
 
-		auto copyFilter =
+		std::shared_ptr<D3D11PostProcess> copyFilter =
 			std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
 				m_screenWidth, m_screenHeight);
-		copyFilter->SetShaderResources({ this->m_shaderResourceView });
-		copyFilter->m_pixelConstData.strength = 1.f;
-		copyFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
-		m_filters.push_back(copyFilter);
+		copyFilter->SetShaderResources({this->m_shaderResourceView});
+		m_postProcesses.push_back(copyFilter);
 
+		std::shared_ptr<D3D11PostProcess> blurFilter =
+			std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
+				m_screenWidth, m_screenHeight);
+		blurFilter->SetShaderResources({ m_shaderResourceView });
+		blurFilter->m_pixelConstData.threshold = 0.f;
+		blurFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+		m_postProcesses.push_back(blurFilter);
+		for (int down = m_down; down >= 1; down /= 2)
+		{
+			for (int i = 0; i < 5; i++) 
+			{
+				auto& prevResource = m_postProcesses.back()->m_shaderResourceView;
+				m_postProcesses.push_back(std::make_shared<D3D11PostProcess>(
+					m_d3dDevice, m_d3dContext, L"Sampling", L"Blur",
+					m_screenWidth / m_down, m_screenHeight / m_down));
+				m_postProcesses.back()->SetShaderResources({ prevResource });
+			}
+			if (down > 1) 
+			{
+				auto upFilter = std::make_shared<D3D11PostProcess>(
+					m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
+					m_screenWidth / down * 2, m_screenHeight / down * 2);
+				upFilter->SetShaderResources({ m_postProcesses.back()->m_shaderResourceView });
+				upFilter->m_pixelConstData.threshold = 0.0f;
+				upFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+				m_postProcesses.push_back(upFilter);
+			}
+		}
 
-		//auto combineFilter =
-		//	std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"BlurX",
-		//		m_screenWidth, m_screenHeight);
-		//combineFilter->SetShaderResources({ copyFilter->m_shaderResourceView,
-		//								   m_filters.back()->m_shaderResourceView });
-		//combineFilter->SetRenderTargets({ this->m_renderTargetView });
-		//combineFilter->m_pixelConstData.strength = 1.f;
-		//combineFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
-		//m_filters.push_back(combineFilter);
-
-		//auto downFilter = std::make_shared<D3D11PostProcess>(
-		//	m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling", m_screenWidth / m_down,
-		//	m_screenHeight / m_down);
-		//downFilter->SetShaderResources({ m_shaderResourceView });
-		//downFilter->m_pixelConstData.threshold = m_threshold;
-		//downFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
-		//m_filters.push_back(downFilter);
-
-
-		//for (int down = m_down; down >= 1; down /= 2)
-		//{
-		//	for (int i = 0; i < 5; i++) {
-		//		auto& prevResource = m_filters.back()->m_shaderResourceView;
-		//		m_filters.push_back(make_shared<ImageFilter>(
-		//			m_d3dDevice, m_d3dContext, L"Sampling", L"BlurX",
-		//			m_screenWidth / m_down, m_screenHeight / m_down));
-		//		m_filters.back()->SetShaderResources({ prevResource });
-
-		//		auto& prevResource2 = m_filters.back()->m_shaderResourceView;
-		//		m_filters.push_back(make_shared<ImageFilter>(
-		//			m_d3dDevice, m_d3dContext, L"Sampling", L"BlurY",
-		//			m_screenWidth / m_down, m_screenHeight / m_down));
-		//		m_filters.back()->SetShaderResources({ prevResource2 });
-		//	}
-		//	if (down > 1) {
-		//		auto upFilter = make_shared<ImageFilter>(
-		//			m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
-		//			m_screenWidth / down * 2, m_screenHeight / down * 2);
-		//		upFilter->SetShaderResources({ m_filters.back()->m_shaderResourceView });
-		//		upFilter->m_pixelConstData.threshold = 0.0f;
-		//		upFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
-		//		m_filters.push_back(upFilter);
-		//	}
-		//}
-
-
-		//auto combineFilter =
-		//	make_shared<ImageFilter>(m_d3dDevice, m_d3dContext, L"Sampling", L"Combine",
-		//		m_screenWidth, m_screenHeight);
-		//combineFilter->SetShaderResources({ copyFilter->m_shaderResourceView,
-		//								   m_filters.back()->m_shaderResourceView });
-		//combineFilter->SetRenderTargets({ this->m_renderTargetView });
-		//combineFilter->m_pixelConstData.strength = m_strength;
-		//combineFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
-		//m_filters.push_back(combineFilter);
+		auto combineFilter =
+			std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"Combine",
+				m_screenWidth, m_screenHeight);
+		combineFilter->SetShaderResources({ copyFilter->m_shaderResourceView,
+										   m_postProcesses.back()->m_shaderResourceView});
+		combineFilter->SetRenderTargets({ this->m_renderTargetView });
+		combineFilter->m_pixelConstData.strength = m_strength;
+		combineFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+		m_postProcesses.push_back(combineFilter);
 	}
 
 	D3D11Renderer::D3D11Renderer() : D3D11Core(){}
@@ -91,7 +71,7 @@ namespace graphics
 		//if (!my_Mesh1.Intialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
 		//	return false;
 
-		std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 5.f, 5.f) };
+		std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 20, 20) };
 		meshes[0].textureFilename = "d:/earth.jpg";
 
 		if (!my_Mesh1.Intialize(m_d3dDevice,meshes))
@@ -189,6 +169,7 @@ namespace graphics
 		// Constant를 CPU에서 GPU로 복사
 		UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
 
+		// light별 fallofEnd fallofStart값을 변경하지 않기 위해 복사해서 사용
 		auto basicPixelData{ my_Mesh1.m_basicPixelConstantBufferData };
 
 		// 여러 개 조명 사용 예시
@@ -232,10 +213,10 @@ namespace graphics
 			m_fresnelR0;
 
 		if (m_dirtyflag) {
-			m_filters[0]->m_pixelConstData.threshold = m_threshold;
-			m_filters[0]->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
-			m_filters.back()->m_pixelConstData.strength = m_strength;
-			m_filters.back()->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+			m_postProcesses[1]->m_pixelConstData.threshold = m_threshold;
+			m_postProcesses[1]->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+			m_postProcesses.back()->m_pixelConstData.strength = m_strength;
+			m_postProcesses.back()->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 			m_dirtyflag = 0;
 		}
 	}
@@ -318,14 +299,92 @@ namespace graphics
 
 		m_cubeMap.Render(m_d3dContext);
 
-		/*for (auto& f : m_filters) {
-			f->Render(m_d3dContext);
-		}*/
+		for (auto& m_postProcess : m_postProcesses) {
+			m_postProcess->Render(m_d3dContext);
+		}
 
 	}
 
 	void D3D11Renderer::UpdateGUI()
 	{
+		static bool show_app_fullscreen = false;
+		bool* p_open= &show_app_fullscreen;
+
+		static bool opt_fullscreen = true;
+		static bool opt_padding = false;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
+		{
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
+		else
+		{
+			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+		}
+
+		// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+		// and handle the pass-thru hole, so we ask Begin() to not render a background.
+		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+			window_flags |= ImGuiWindowFlags_NoBackground;
+
+		// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+		// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+		// all active windows docked into it will lose their parent and become undocked.
+		// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+		// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+		if (!opt_padding)
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("DockSpace Demo", p_open, window_flags);
+		if (!opt_padding)
+			ImGui::PopStyleVar();
+
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(2);
+
+		// Submit the DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		}
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Options"))
+			{
+				// Disabling fullscreen would allow the window to be moved to the front of other windows,
+				// which we can't undo at the moment without finer window depth/z control.
+				ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
+				ImGui::MenuItem("Padding", NULL, &opt_padding);
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
+				if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
+				if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
+				if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
+				if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
+					*p_open = false;
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
+		ImGui::End();
 		//ImGui::Checkbox("Use Rim", reinterpret_cast<bool*>(&m_basicPixelConstantBufferData.useRim));
 		//ImGui::SliderFloat("Rim Strength",
 		//	&m_basicPixelConstantBufferData.rimStrength, 0.0f,
@@ -336,6 +395,12 @@ namespace graphics
 		//	0.0f, 1.0f);
 		//ImGui::SliderFloat("Rim Power", &m_basicPixelConstantBufferData.rimPower,
 		//	0.01f, 10.0f);
+		ImGui::Begin("Scene Control");
+
+		// ImGui가 측정해주는 Framerate 출력
+		ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+
 		m_dirtyflag +=
 			ImGui::SliderFloat("Bloom Threshold", &m_threshold, 0.0f, 1.0f);
 		m_dirtyflag +=
@@ -406,5 +471,6 @@ namespace graphics
 				512.0f);
 			ImGui::TreePop();
 		}
+		ImGui::End();
 	}
 }

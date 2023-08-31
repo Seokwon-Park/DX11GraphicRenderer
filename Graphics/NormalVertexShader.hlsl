@@ -27,20 +27,27 @@ PixelShaderInput main(VertexShaderInput input)
     output.normalWorld = mul(normal, invTranspose).xyz;
     output.normalWorld = normalize(output.normalWorld);
     
+    
     pos = mul(pos, model);
     
     float t = input.uv.x;
     
     pos.xyz += output.normalWorld * t * scale;
 
+    //posModel
+    output.posModel = input.position;
+    
+    //posWorld
     output.posWorld = pos.xyz;
     
     pos = mul(pos, view);
     pos = mul(pos, projection);
 
+    ///uv
     output.posProj = pos;
     output.uv = input.uv;
     
+    //color 
     output.color = lerp(float3(1.0, 1.0, 0.0), float3(1.0, 0.0, 0.0), t);
 
     return output;

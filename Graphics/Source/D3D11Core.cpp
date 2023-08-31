@@ -64,6 +64,8 @@ namespace graphics
 		return float(m_screenWidth - m_guiWidth) / m_screenHeight;
 	}
 
+	bool show_demo_window = true;
+
 	// 렌더러 실행 시
 	int D3D11Core::Run()
 	{
@@ -78,20 +80,26 @@ namespace graphics
 				ImGui_ImplDX11_NewFrame(); // GUI 프레임 시작
 				ImGui_ImplWin32_NewFrame();
 
-				ImGui::NewFrame(); // 어떤 것들을 렌더링 할지 기록 시작
-				ImGui::Begin("Scene Control");
 
-				// ImGui가 측정해주는 Framerate 출력
-				ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+				//static bool test = true;
+				ImGui::NewFrame(); // 어떤 것들을 렌더링 할지 기록 시작
+				if (show_demo_window)
+				{
+					ImGui::ShowDemoWindow(&show_demo_window);
+					UpdateGUI(); // 추가적으로 사용할 GUI
+				}
+
+
+
 
 				// IMGUI
-				UpdateGUI(); // 추가적으로 사용할 GUI
 				//auto size = ImGui::GetWindowSize();
 
 				//ImGui::SetWindowPos(ImVec2(0.f, 0.f));
 				m_guiWidth = 0.f;
 
-				ImGui::End();
+
 				ImGui::Render(); // 렌더링할 것들 기록 끝
 
 				// DX11
@@ -101,7 +109,13 @@ namespace graphics
 				// DX11 END
 
 				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()); // GUI 렌더링
-				// IMGUI END
+
+				  // Update and Render additional Platform Windows
+				if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+				{
+					ImGui::UpdatePlatformWindows();
+					ImGui::RenderPlatformWindowsDefault();
+				}
 
 				// Switch the back buffer and the front buffer
 				// 주의: ImGui RenderDrawData() 다음에 Present() 호출
@@ -300,15 +314,25 @@ namespace graphics
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
 		(void)io;
-		io.DisplaySize = ImVec2(float(m_screenWidth), float(m_screenHeight));
-		ImGui::StyleColorsLight();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+		ImGui::StyleColorsDark();
 
-		// Setup Platform/Renderer backends
-		if (!ImGui_ImplDX11_Init(m_d3dDevice.Get(), m_d3dContext.Get())) {
-			return false;
+		ImGuiStyle& style = ImGui::GetStyle();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 
 		if (!ImGui_ImplWin32_Init(m_mainWindow)) {
+			return false;
+		}
+
+		// Setup Platform/Renderer backends
+		if (!ImGui_ImplDX11_Init(m_d3dDevice.Get(), m_d3dContext.Get())) {
 			return false;
 		}
 
@@ -401,7 +425,7 @@ namespace graphics
 		sd.BufferCount = 2;                                // Double-buffering
 		sd.BufferDesc.RefreshRate.Numerator = 60;          // FPS
 		sd.BufferDesc.RefreshRate.Denominator = 1;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;  // how swap chain is to be used
+		sd.BufferUsage = DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_RENDER_TARGET_OUTPUT;  // how swap chain is to be used
 		sd.OutputWindow = m_mainWindow;                    // the window to be used
 		sd.Windowed = TRUE;                                // windowed/full-screen mode
 		sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // allow full-screen switching
@@ -428,6 +452,8 @@ namespace graphics
 		if (backBuffer) {
 			m_d3dDevice->CreateRenderTargetView(backBuffer.Get(), NULL,
 				m_renderTargetView.GetAddressOf());
+			m_d3dDevice->CreateShaderResourceView(backBuffer.Get(), NULL,
+				m_shaderResourceView.GetAddressOf());
 		}
 		else {
 			std::cout << "CreateRenderTargetView() failed." << std::endl;

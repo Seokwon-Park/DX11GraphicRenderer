@@ -26,27 +26,27 @@ float4 main(SamplingPixelShaderInput input) : SV_TARGET
 {
     float3 c = g_texture0.Sample(g_sampler, float2((input.uv.x + dx), (input.uv.y + dy))).rgb;
 		
-		//declare stuff
-    const int mSize = 11;
+	//declare stuff
+    const int mSize = 5;
     const int kSize = (mSize - 1) / 2;
     float kernel[mSize];
     float3 final_colour = float3(0.f, 0.f, 0.f);
 		
-		//create the 1-D kernel
-    float sigma = 7.0;
+	//create the 1-D kernel
+    float sigma = 7.f;
     float Z = 0.0;
     for (int k = 0; k <= kSize; ++k)
     {
         kernel[kSize + k] = kernel[kSize - k] = normpdf(float(k), sigma);
     }
 		
-		//get the normalization factor (as the gaussian has been clamped)
+	//get the normalization factor (as the gaussian has been clamped)
     for (int j = 0; j < mSize; ++j)
     {
         Z += kernel[j];
     }
 		
-		//read out the texels
+	//read out the texels
     for (int i = -kSize; i <= kSize; ++i)
     {
         for (int j = -kSize; j <= kSize; ++j)
@@ -58,5 +58,4 @@ float4 main(SamplingPixelShaderInput input) : SV_TARGET
     }
 		
     return float4(final_colour / (Z * Z), 1.0);
-
 }

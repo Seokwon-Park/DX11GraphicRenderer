@@ -45,6 +45,8 @@ namespace graphics
 			XMFLOAT3 temp = XMFLOAT3(xyz_copy[0], xyz_copy[1], xyz_copy[2]);
 			positions.push_back(temp);
 
+			//XMFLOAT3 res;
+			//XMStoreFloat3(&res, XMVectorNegate(XMLoadFloat3(&normal)));
 			// ¹ý¼±
 			normals.push_back(normal);
 		}

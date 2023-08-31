@@ -51,6 +51,9 @@
     <ClCompile Include="Source\D3D11PostProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\imguiTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\D3D11Renderer.h">
@@ -101,8 +104,9 @@
     <FxCompile Include="CubePS.hlsl" />
     <FxCompile Include="CubeVS.hlsl" />
     <FxCompile Include="SamplingVS.hlsl" />
-    <FxCompile Include="BlurXPS.hlsl" />
+    <FxCompile Include="BlurPS.hlsl" />
     <FxCompile Include="SamplingPS.hlsl" />
+    <FxCompile Include="CombinePS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Commons.hlsli" />

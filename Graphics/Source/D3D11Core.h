@@ -77,7 +77,7 @@ namespace graphics
 		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
 		bool m_drawAsWire = false;
 
-		std::vector<std::shared_ptr<D3D11PostProcess>> m_filters;
+		std::vector<std::shared_ptr<D3D11PostProcess>> m_postProcesses;
 
 		// Depth buffer ฐüทร
 		ComPtr<ID3D11Texture2D> m_depthStencilBuffer;
