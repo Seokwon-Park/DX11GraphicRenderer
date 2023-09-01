@@ -3,6 +3,7 @@
 #include "D3D11CommonHeaders.h"
 #include "CommonHeaders.h"
 #include "D3D11PostProcess.h"
+#include "D3D11Camera.h"
 
 namespace graphics
 {
@@ -35,7 +36,7 @@ namespace graphics
 		// Mouse Events
 		virtual void OnMouseDown(WPARAM btnState, int x, int y) {};
 		virtual void OnMouseUp(WPARAM btnState, int x, int y) {};
-		virtual void OnMouseMove(WPARAM btnState, int x, int y) {};
+		virtual void OnMouseMove(WPARAM btnState, int x, int y);
 
 		static void CreateDDSTexture(
 			ComPtr<ID3D11Device>& device,
@@ -64,26 +65,32 @@ namespace graphics
 		UINT m_numQualityLevels = 0;
 
 		// D3D11 Base		
-		// µπŸ¿ÃΩ∫, ƒ¡≈ÿΩ∫∆Æ
+		// 1. µπŸ¿ÃΩ∫, ƒ¡≈ÿΩ∫∆Æ
 		ComPtr<ID3D11Device> m_d3dDevice;
 		ComPtr<ID3D11DeviceContext> m_d3dContext;
-		// ∑ª¥ı≈∏∞Ÿ ∫‰(RTV)
+		// 2. Swapchain
+		ComPtr<IDXGISwapChain> m_swapChain;
+		// 3. ∑ª¥ı≈∏∞Ÿ ∫‰(RTV)
 		ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 		ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
-		// Swapchain
-		ComPtr<IDXGISwapChain> m_swapChain;
-		// RasterizerState
+		// 4. RasterizerState
 		ComPtr<ID3D11RasterizerState> m_solidRasterizerState;
 		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
 		bool m_drawAsWire = false;
 
-		std::vector<std::shared_ptr<D3D11PostProcess>> m_postProcesses;
 
 		// Depth buffer ∞¸∑√
 		ComPtr<ID3D11Texture2D> m_depthStencilBuffer;
 		ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 		ComPtr<ID3D11DepthStencilState> m_depthStencilState;
-
+		// 5. Viewport
 		D3D11_VIEWPORT m_screenViewport;
+		D3D11Camera m_camera;
+
+		bool m_keyPressed[256] = {
+			false,
+		};
+
+		bool m_useFPV = false;
 	};
 }

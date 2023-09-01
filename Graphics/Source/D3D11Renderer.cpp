@@ -125,6 +125,18 @@ namespace graphics
 
 		//auto basicVertexData{ m_basicVertexConstantBufferData };
 
+		if (m_useFPV)
+		{
+			if (m_keyPressed[87])
+				m_camera.MoveForward(dt);
+			if (m_keyPressed[83])
+				m_camera.MoveForward(-dt);
+			if (m_keyPressed[68])
+				m_camera.MoveRight(dt);
+			if (m_keyPressed[65])
+				m_camera.MoveRight(-dt);
+		}
+
 		// 모델의 변환
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
 			XMMatrixRotationY(m_modelRotation.y) *
@@ -133,15 +145,26 @@ namespace graphics
 			XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.world);
 
+		m_matrix = my_Mesh1.m_basicVertexConstantBufferData.world;
 		// 역행렬의 전치 행렬
 		my_Mesh1.m_basicVertexConstantBufferData.invTranspose = my_Mesh1.m_basicVertexConstantBufferData.world;
 		my_Mesh1.m_basicVertexConstantBufferData.invTranspose *= XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
 		my_Mesh1.m_basicVertexConstantBufferData.invTranspose =
 			XMMatrixInverse(nullptr, XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.invTranspose));
 
+		XMMATRIX viewRow = m_camera.GetViewRow();
+		XMMATRIX projRow = m_camera.GetProjRow();
+		XMFLOAT3 eyeWorld = m_camera.GetEyePos();
 
 		// 시점 변환
-		my_Mesh1.m_basicVertexConstantBufferData.view =
+
+		my_Mesh1.m_basicPixelConstantBufferData.useTexture = true;
+		my_Mesh1.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
+		my_Mesh1.m_basicVertexConstantBufferData.view = XMMatrixTranspose(viewRow);
+		my_Mesh1.m_basicVertexConstantBufferData.projection =
+			XMMatrixTranspose(projRow);
+
+		/*my_Mesh1.m_basicVertexConstantBufferData.view =
 			XMMatrixRotationX(m_viewRot.x) *
 			XMMatrixRotationY(m_viewRot.y) *
 			XMMatrixRotationZ(m_viewRot.z) *
@@ -152,19 +175,19 @@ namespace graphics
 			XMVectorZero(), XMMatrixInverse(nullptr, my_Mesh1.m_basicVertexConstantBufferData.view)));
 
 		my_Mesh1.m_basicVertexConstantBufferData.view =
-			XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.view);
+			XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.view);*/
 
-		// 프로젝션
-		m_aspect = D3D11Core::GetAspectRatio();
-		if (m_usePerspectiveProjection) {
-			my_Mesh1.m_basicVertexConstantBufferData.projection =
-				XMMatrixPerspectiveFovLH(XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
-		}
-		else {
-			my_Mesh1.m_basicVertexConstantBufferData.projection =
-				XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f, 1.0f, m_nearZ, m_farZ);
-		}
-		my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.projection);
+		//// 프로젝션
+		//m_aspect = D3D11Core::GetAspectRatio();
+		//if (m_usePerspectiveProjection) {
+		//	my_Mesh1.m_basicVertexConstantBufferData.projection =
+		//		XMMatrixPerspectiveFovLH(XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
+		//}
+		//else {
+		//	my_Mesh1.m_basicVertexConstantBufferData.projection =
+		//		XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f, 1.0f, m_nearZ, m_farZ);
+		//}
+		//my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.projection);
 
 		// Constant를 CPU에서 GPU로 복사
 		UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
@@ -202,6 +225,7 @@ namespace graphics
 		// Transpose()도 생략 가능
 		m_cubeMap.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 
+		// Mesh의 MVP를 큐브맵의 vertexConstants로 전달
 		UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData,
 			m_cubeMap.cubeMesh->vertexConstantBuffer);
 
@@ -212,6 +236,7 @@ namespace graphics
 		my_Mesh1.m_basicPixelConstantBufferData.material.fresnelR0=
 			m_fresnelR0;
 
+		// post effects
 		if (m_dirtyflag) {
 			m_postProcesses[1]->m_pixelConstData.threshold = m_threshold;
 			m_postProcesses[1]->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
@@ -312,7 +337,7 @@ namespace graphics
 
 		static bool opt_fullscreen = true;
 		static bool opt_padding = false;
-		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 
 		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
 		// because it would be confusing to have two docking targets within each others.
@@ -385,6 +410,8 @@ namespace graphics
 		}
 
 		ImGui::End();
+
+		ImGui::Begin("Scene Control");
 		//ImGui::Checkbox("Use Rim", reinterpret_cast<bool*>(&m_basicPixelConstantBufferData.useRim));
 		//ImGui::SliderFloat("Rim Strength",
 		//	&m_basicPixelConstantBufferData.rimStrength, 0.0f,
@@ -395,7 +422,23 @@ namespace graphics
 		//	0.0f, 1.0f);
 		//ImGui::SliderFloat("Rim Power", &m_basicPixelConstantBufferData.rimPower,
 		//	0.01f, 10.0f);
-		ImGui::Begin("Scene Control");
+		static ImGuizmo::OPERATION operation(ImGuizmo::TRANSLATE);
+		static ImGuizmo::MODE mode(ImGuizmo::LOCAL);
+
+		if (ImGui::IsKeyPressed(ImGuiKey_Z))
+			operation = ImGuizmo::TRANSLATE;
+		if (ImGui::IsKeyPressed(ImGuiKey_E))
+			operation = ImGuizmo::ROTATE;
+		if (ImGui::IsKeyPressed(ImGuiKey_R)) // r Key
+			operation = ImGuizmo::SCALE;
+		if (ImGui::RadioButton("Translate", operation == ImGuizmo::TRANSLATE))
+			operation = ImGuizmo::TRANSLATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Rotate", operation == ImGuizmo::ROTATE))
+			operation = ImGuizmo::ROTATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Scale", operation == ImGuizmo::SCALE))
+			operation = ImGuizmo::SCALE;
 
 		// ImGui가 측정해주는 Framerate 출력
 		ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -418,10 +461,53 @@ namespace graphics
 			//	1.0f)) {
 			//	m_dirtyFlag = true;
 			//}
+			
+			XMMATRIX transform = XMMatrixIdentity(); // 초기화된 단위 행렬
 
-			ImGui::SliderFloat3("m_modelTranslation", &m_modelTranslation.x, -2.0f, 2.0f);
-			ImGui::SliderFloat3("m_modelRotation(Rad)", &m_modelRotation.x, -3.14f, 3.14f);
-			ImGui::SliderFloat3("m_modelScaling", &m_modelScaling.x, 0.1f, 2.0f);
+			// 이동, 회전 및 스케일을 변환 행렬에 적용합니다.
+			transform *= XMMatrixTranslationFromVector(XMLoadFloat3(&m_modelTranslation));
+			transform *= XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_modelRotation));
+			transform *= XMMatrixScalingFromVector(XMLoadFloat3(&m_modelScaling));
+			
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+
+			float matrix[16];
+			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(matrix), transform);
+
+			float proj[16];
+			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(proj), m_camera.GetProjRow());
+
+			float view_mat[16];
+			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(view_mat), m_camera.GetViewRow());
+			//// ImGuizmo를 사용하여 행렬 편집 위젯을 그립니다.
+			ImGuizmo::Manipulate(
+				/* view matrix */ view_mat,
+				/* projection matrix */ proj,
+				operation,
+				mode,
+				matrix
+			);
+
+				transform = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(matrix));
+			//// 변경된 행렬을 다시 XMMATRIX로 변환합니다.
+			if (ImGuizmo::IsUsing())
+			{
+
+				XMVECTOR trans;
+				XMVECTOR rot;
+				XMVECTOR scale; // 스케일을 저장할 XMVECTOR
+
+				XMMatrixDecompose(&scale, &rot, &trans, transform);
+
+				XMStoreFloat3(&m_modelTranslation, trans);
+				XMStoreFloat3(&m_modelRotation, rot);
+				XMStoreFloat3(&m_modelScaling, scale);
+			}
+
+			ImGui::SliderFloat3("Translation", &m_modelTranslation.x, -2.0f, 2.0f);
+			ImGui::SliderFloat3("Rotation", &m_modelRotation.x, -3.14f, 3.14f);
+			ImGui::SliderFloat3("Scaling", &m_modelScaling.x, 0.1f, 2.0f);
 
 			ImGui::SliderFloat3("m_viewRot", &m_viewRot.x, -3.14f, 3.14f);
 
@@ -453,7 +539,7 @@ namespace graphics
 				m_lightType = 2;
 			}
 
-			ImGui::SliderFloat3("Material Fresnel", &m_fresnelR0.x, 0.f, 1.f);
+			ImGui::ColorEdit3("Material Fresnel", &m_fresnelR0.x);
 
 			ImGui::SliderFloat("Material Diffuse", &m_materialDiffuse, 0.0f, 1.0f);
 			ImGui::SliderFloat("Material Specular", &m_materialSpecular, 0.0f, 1.0f);

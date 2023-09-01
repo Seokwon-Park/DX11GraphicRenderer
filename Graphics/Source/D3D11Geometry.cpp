@@ -372,15 +372,15 @@ namespace graphics
 			XMFLOAT3({-.5f, -.5f, .5f}) 
 		};
 
-		XMFLOAT3 center = XMFLOAT3();
+		XMVECTOR center = XMVectorSet(0.f,0.f,0.f,0.f);
 
 		for (int i = 0; i < 4; i++) {
-			center += points[i];
+			center = XMVectorAdd(center, XMLoadFloat3(&points[i]));
 		}
-		center /= 4.0f;
+		XMVectorScale( center, 1.f/4.f);
 
 		for (int i = 0; i < 4; i++) {
-			points[i] -= center;
+			XMStoreFloat3(&points[i], XMVectorSubtract(XMLoadFloat3(&points[i]), center));
 		}
 
 		MeshData meshData;
@@ -483,8 +483,8 @@ namespace graphics
 
 			Vertex v3;
 			// À§Ä¡¿Í ÅØ½ºÃç ÁÂÇ¥ °áÁ¤
-			XMStoreFloat3(&v3.position, (XMLoadFloat3(&v0.position) + XMLoadFloat3(&v2.position)) * 0.5f);
-			XMStoreFloat2(&v3.texcoord, (XMLoadFloat2(&v0.texcoord) + XMLoadFloat2(&v2.texcoord)) * 0.5f);
+			XMStoreFloat3(&v3.position, (XMLoadFloat3(&v0.position) + XMLoadFloat3(&v2.position)) * .5f);
+			XMStoreFloat2(&v3.texcoord, (XMLoadFloat2(&v0.texcoord) + XMLoadFloat2(&v2.texcoord)) * .5f);
 
 			Vertex v4;
 			// À§Ä¡¿Í ÅØ½ºÃç ÁÂÇ¥ °áÁ¤

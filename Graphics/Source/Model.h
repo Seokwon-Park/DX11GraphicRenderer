@@ -10,7 +10,7 @@
 
 namespace graphics
 {
-	class MeshGroup
+	class Model
 	{
 	public:
 		bool Intialize(ComPtr<ID3D11Device>& device, const std::string filename);

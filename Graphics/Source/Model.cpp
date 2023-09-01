@@ -1,8 +1,8 @@
-#include "MeshGroup.h"
+#include "Model.h"
 
 namespace graphics
 {
-	bool MeshGroup::Intialize(ComPtr<ID3D11Device>& device, const std::string filename)
+	bool Model::Intialize(ComPtr<ID3D11Device>& device, const std::string filename)
 	{
 		std::vector<MeshData> meshesData = Geometry::ReadModelFromFile(filename);
 
@@ -14,7 +14,7 @@ namespace graphics
 		return true;
 	}
 
-	bool MeshGroup::Intialize(ComPtr<ID3D11Device>& device, std::vector<MeshData>& meshesData)
+	bool Model::Intialize(ComPtr<ID3D11Device>& device, std::vector<MeshData>& meshesData)
 	{
 		// Texture sampler ¸¸µé±â
 		D3D11_SAMPLER_DESC samplerDesc;

@@ -81,17 +81,16 @@ namespace graphics
 				ImGui_ImplWin32_NewFrame();
 
 
-
 				//static bool test = true;
 				ImGui::NewFrame(); // 어떤 것들을 렌더링 할지 기록 시작
-				if (show_demo_window)
+				ImGuizmo::BeginFrame();
+
+				UpdateGUI(); // 추가적으로 사용할 GUI
+				/*if (show_demo_window)
 				{
 					ImGui::ShowDemoWindow(&show_demo_window);
-					UpdateGUI(); // 추가적으로 사용할 GUI
-				}
 
-
-
+				}*/
 
 				// IMGUI
 				//auto size = ImGui::GetWindowSize();
@@ -147,6 +146,9 @@ namespace graphics
 			return false;
 		}
 
+		// 콘솔창이 렌더링 창을 덮는 것 방지
+		SetForegroundWindow(m_mainWindow);
+
 		return true;
 	}
 
@@ -181,7 +183,9 @@ namespace graphics
 				return 0;
 			break;
 		case WM_MOUSEMOVE:
-			// cout << "Mouse " << LOWORD(lParam) << " " << HIWORD(lParam) << endl;
+			//std::cout << "Mouse " << LOWORD(lParam) << " " << HIWORD(lParam) << std::endl;
+			if(m_useFPV)
+				OnMouseMove(wParam, LOWORD(lParam), HIWORD(lParam));
 			break;
 		case WM_LBUTTONUP:
 			// cout << "WM_LBUTTONUP Left mouse button" << endl;
@@ -190,14 +194,46 @@ namespace graphics
 			// cout << "WM_RBUTTONUP Right mouse button" << endl;
 			break;
 		case WM_KEYDOWN:
-			// cout << "WM_KEYDOWN " << (int)wParam << endl;
+			std::cout << "WM_KEYDOWN " << (int)wParam << std::endl;
+
+			m_keyPressed[wParam] = true;
+
+			if (wParam == 27) {
+				// ESC 키가 눌렸을 때 프로그램 종료
+				DestroyWindow(hwnd);
+			}
 			break;
+		case WM_KEYUP:
+			m_keyPressed[wParam] = false;
+
+			if (wParam == 70) { // 'f' 키
+				m_useFPV = !m_useFPV;
+			}
+			break;
+
 		case WM_DESTROY:
 			::PostQuitMessage(0);
 			return 0;
 		}
 
 		return ::DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+
+	void D3D11Core::OnMouseMove(WPARAM btnState, int mouseX, int mouseY) {
+
+		// 마우스 커서의 위치를 NDC로 변환
+		// 마우스 커서는 좌측 상단 (0, 0), 우측 하단(width-1, height-1)
+		// NDC는 좌측 하단이 (-1, -1), 우측 상단(1, 1)
+		float x = mouseX * 2.0f / m_screenWidth - 1.0f;
+		float y = -mouseY * 2.0f / m_screenHeight + 1.0f;
+
+		// 커서가 화면 밖으로 나갔을 경우 범위 조절
+		// 게임에서는 클램프를 안할 수도 있다.
+		x = std::clamp(x, -1.0f, 1.0f);
+		y = std::clamp(y, -1.0f, 1.0f);
+
+		// 카메라 시점 회전
+		m_camera.UpdateMouse(x, y);
 	}
 
 	bool D3D11Core::InitMainWindow()
@@ -264,15 +300,15 @@ namespace graphics
 		// 6. m_depthStencilState
 
 		// 1. m_d3dDevice와 m_d3dContext 생성
-		// 2. SwapChain 생성
+		// 2. 내부에서 m_SwapChain도 같이 생성
 		if(!CreateDeviceAndContext())
 			return false;
 		
-		// 3. CreateRenderTargetView
+		// 3. CreateRenderTargetView m_renderTargetView 생성
 		if(!CreateRenderTargetView())
 			return false;
 
-		// 4. CreateViewport
+		// 4. CreateViewport m_screenViewport 생성
 		SetViewport();
 
 		// 5. Create a solid rasterizer state
@@ -325,6 +361,62 @@ namespace graphics
 		{
 			style.WindowRounding = 0.0f;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+
+			style.WindowPadding = ImVec2(10, 10);
+			style.WindowRounding = 3.0f;
+			style.FramePadding = ImVec2(5, 5);
+			style.FrameRounding = 3.0f;
+			style.ItemSpacing = ImVec2(12, 8);
+			style.ItemInnerSpacing = ImVec2(8, 6);
+			style.IndentSpacing = 15.0f;
+			style.ScrollbarSize = 15.0f;
+			style.ScrollbarRounding = 3.0f;
+			style.GrabMinSize = 10.0f;
+			style.GrabRounding = 2.0f;
+				 
+			style.Colors[ImGuiCol_Text] = ImVec4(1.f, 1.f, 1.f, 1.00f);
+			style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.5f, 0.5f, 0.5f, 1.00f);
+			style.Colors[ImGuiCol_WindowBg] = ImVec4(.2f, .2f, .2f, 1.00f);
+			//style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+			style.Colors[ImGuiCol_PopupBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+			style.Colors[ImGuiCol_Border] = ImVec4(0.80f, 0.80f, 0.83f, 0.88f);
+			style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
+			style.Colors[ImGuiCol_FrameBg] = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+			style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+			style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			style.Colors[ImGuiCol_TitleBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+			style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(1.00f, 0.98f, 0.95f, 0.75f);
+			style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
+			style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+			style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+			style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+			style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+			//style.Colors[ImGuiCol_ComboBg] = ImVec4(0.19f, 0.18f, 0.21f, 1.00f);
+			style.Colors[ImGuiCol_CheckMark] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+			style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+			style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+			style.Colors[ImGuiCol_Button] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+			style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+			style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			style.Colors[ImGuiCol_Header] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
+			style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+			//style.Colors[ImGuiCol_Column] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			//style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+			//style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+			style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+			style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+			//style.Colors[ImGuiCol_CloseButton] = ImVec4(0.40f, 0.39f, 0.38f, 0.16f);
+			//style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.40f, 0.39f, 0.38f, 0.39f);
+			//style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.40f, 0.39f, 0.38f, 1.00f);
+			style.Colors[ImGuiCol_PlotLines] = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
+			style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
+			style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.40f, 0.39f, 0.38f, 0.63f);
+			style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.25f, 1.00f, 0.00f, 1.00f);
+			style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.25f, 1.00f, 0.00f, 0.43f);
+			//style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(1.00f, 0.98f, 0.95f, 0.73f);
 		}
 
 		if (!ImGui_ImplWin32_Init(m_mainWindow)) {

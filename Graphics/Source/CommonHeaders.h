@@ -16,6 +16,8 @@
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
+#include <ImGuizmo.h>
+
 inline void ThrowIfFailed(HRESULT hr)
 {
     if (FAILED(hr))

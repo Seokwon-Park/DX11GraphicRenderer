@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="Source\AssimpLoader.cpp" />
     <ClCompile Include="Source\CubeMap.cpp" />
+    <ClCompile Include="Source\D3D11Camera.cpp" />
     <ClCompile Include="Source\D3D11Math.cpp" />
     <ClCompile Include="Source\D3D11PostProcess.cpp" />
     <ClCompile Include="Source\D3D11Utilities.cpp" />
@@ -144,11 +145,11 @@
     <ClCompile Include="Source\D3D11Core.cpp" />
     <ClCompile Include="Source\D3D11Renderer.cpp" />
     <ClCompile Include="Source\D3D11Geometry.cpp" />
-    <ClCompile Include="Source\imguiTest.cpp" />
     <ClCompile Include="Source\main.cpp" />
-    <ClCompile Include="Source\MeshGroup.cpp" />
+    <ClCompile Include="Source\Model.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\D3D11Camera.h" />
     <ClInclude Include="Source\D3D11PostProcess.h" />
     <ClInclude Include="Source\AssimpLoader.h" />
     <ClInclude Include="Source\BasicConstants.h" />
@@ -161,7 +162,7 @@
     <ClInclude Include="Source\D3D11Geometry.h" />
     <ClInclude Include="Source\FbxLoader.h" />
     <ClInclude Include="Source\Mesh.h" />
-    <ClInclude Include="Source\MeshGroup.h" />
+    <ClInclude Include="Source\Model.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPixelShader.hlsl">

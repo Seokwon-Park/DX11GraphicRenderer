@@ -5,7 +5,7 @@
 #include "D3D11Geometry.h"
 #include "D3D11Math.h"
 #include "D3D11Utilities.h"
-#include "MeshGroup.h"
+#include "Model.h"
 
 namespace graphics
 {
@@ -25,7 +25,10 @@ namespace graphics
 		virtual void Render() override;
 
 	protected:
-		MeshGroup my_Mesh1;
+		Model my_Mesh1;
+
+		std::vector<std::shared_ptr<D3D11PostProcess>> m_postProcesses;
+
 
 		//Normal
 		ComPtr<ID3D11VertexShader> m_normalVertexShader;
@@ -67,7 +70,7 @@ namespace graphics
 		bool m_dirtyFlag = false;
 
 		CubeMap m_cubeMap;
-
+		XMMATRIX m_matrix = XMMatrixIdentity();
 
 		int m_dirtyflag = 1; // 처음에 한 번 실행
 		int m_down = 16;
