@@ -72,7 +72,14 @@ namespace graphics
 		ComPtr<IDXGISwapChain> m_swapChain;
 		// 3. ·»´õÅ¸°Ù ºä(RTV)
 		ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+		ComPtr<ID3D11RenderTargetView> m_indexRenderTargetView;
 		ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
+
+		ComPtr<ID3D11Texture2D> m_tempTexture;
+		ComPtr<ID3D11Texture2D> m_indexTexture;
+		ComPtr<ID3D11Texture2D> m_indexTempTexture;
+		ComPtr<ID3D11Texture2D> m_indexStagingTexture;
+
 		// 4. RasterizerState
 		ComPtr<ID3D11RasterizerState> m_solidRasterizerState;
 		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
@@ -81,6 +88,8 @@ namespace graphics
 
 		// Depth buffer °ü·Ã
 		ComPtr<ID3D11Texture2D> m_depthStencilBuffer;
+		
+		
 		ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 		ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 		// 5. Viewport

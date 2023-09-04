@@ -52,10 +52,12 @@ namespace graphics
 		XMFLOAT3 rimColor = XMFLOAT3(1.f, 1.f, 1.f); // 12
 		float rimPower; // 4
 
+		XMFLOAT4 indexColor; // 16
+
 		float rimStrength = 0.0f; // 4
-		int useSmoothstep = 0; // 4
-		int useRim = 0; // 4
-		float dummy[1]; // 4
+		float pad[3];
+
+
 	};
 
 	static_assert((sizeof(BasicPixelConstantBuffer) % 16) == 0,

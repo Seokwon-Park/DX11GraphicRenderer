@@ -42,6 +42,9 @@ namespace graphics
 			vertexConstantBuffer);
 		CreateConstantBuffer(device, m_basicPixelConstantBufferData,
 			pixelConstantBuffer);
+		
+		m_basicPixelConstantBufferData.indexColor = XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f);
+
 
 		for (const auto& meshData : meshesData) {
 			auto newMesh = std::make_shared<Mesh>();

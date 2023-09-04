@@ -15,7 +15,7 @@ namespace graphics
 		std::shared_ptr<D3D11PostProcess> blurFilter =
 			std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
 				m_screenWidth, m_screenHeight);
-		blurFilter->SetShaderResources({ m_shaderResourceView });
+		blurFilter->SetShaderResources({ this->m_shaderResourceView });
 		blurFilter->m_pixelConstData.threshold = 0.f;
 		blurFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 		m_postProcesses.push_back(blurFilter);
@@ -71,10 +71,18 @@ namespace graphics
 		//if (!my_Mesh1.Intialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
 		//	return false;
 
-		std::vector<MeshData> meshes = { Geometry::MakeSphere(1.f, 20, 20) };
+		std::vector<MeshData> meshes;
+		meshes.push_back(Geometry::MakeSphere(1.f, 20, 20));
 		meshes[0].textureFilename = "d:/earth.jpg";
 
-		if (!my_Mesh1.Intialize(m_d3dDevice,meshes))
+		std::vector<MeshData> meshes2;
+		meshes2.push_back(Geometry::MakeCube(1.f,1.f,1.f));
+		meshes2[0].textureFilename = "d:/earth.jpg";
+
+		if (!my_Mesh1.Intialize(m_d3dDevice, meshes))
+			return false;
+
+		if (!my_Mesh2.Intialize(m_d3dDevice, meshes2))
 			return false;
 
 		//// 노멀 벡터 그리기
@@ -261,7 +269,12 @@ namespace graphics
 		m_d3dContext->ClearDepthStencilView(m_depthStencilView.Get(),
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		m_d3dContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+		ID3D11RenderTargetView* rtvs[] = {
+			m_indexRenderTargetView.Get(),
+			m_renderTargetView.Get()
+		};
+
+		m_d3dContext->OMSetRenderTargets(2, rtvs, m_depthStencilView.Get());
 		m_d3dContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
 
 		// 어떤 쉐이더를 사용할지 설정
@@ -324,9 +337,20 @@ namespace graphics
 
 		m_cubeMap.Render(m_d3dContext);
 
+		ComPtr<ID3D11Texture2D> backBuffer;
+		m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
+		m_d3dContext->ResolveSubresource(m_tempTexture.Get(), 0, backBuffer.Get(), 0,
+			DXGI_FORMAT_R8G8B8A8_UNORM);
+
 		for (auto& m_postProcess : m_postProcesses) {
 			m_postProcess->Render(m_d3dContext);
 		}
+
+		m_d3dContext->ResolveSubresource(m_indexTempTexture.Get(), 0,
+			m_indexTexture.Get(), 0,
+			DXGI_FORMAT_R8G8B8A8_UNORM);
+
+
 
 	}
 
@@ -440,6 +464,50 @@ namespace graphics
 		if (ImGui::RadioButton("Scale", operation == ImGuizmo::SCALE))
 			operation = ImGuizmo::SCALE;
 
+		XMMATRIX transform = XMMatrixIdentity(); // 초기화된 단위 행렬
+
+		// 이동, 회전 및 스케일을 변환 행렬에 적용합니다.
+		transform *= XMMatrixTranslationFromVector(XMLoadFloat3(&m_modelTranslation));
+		transform *= XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_modelRotation));
+		transform *= XMMatrixScalingFromVector(XMLoadFloat3(&m_modelScaling));
+
+		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+
+		float matrix[16];
+		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(matrix), transform);
+
+		float proj[16];
+		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(proj), m_camera.GetProjRow());
+
+		float view_mat[16];
+		//XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(view_mat), m_camera.GetViewRow());
+		XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(view_mat),  m_camera.GetViewRow());
+		//// ImGuizmo를 사용하여 행렬 편집 위젯을 그립니다.
+		ImGuizmo::Manipulate(
+			/* view matrix */ view_mat,
+			/* projection matrix */ proj,
+			operation,
+			mode,
+			matrix
+		);
+
+		transform = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(matrix));
+		//// 변경된 행렬을 다시 XMMATRIX로 변환합니다.
+		if (ImGuizmo::IsUsing())
+		{
+
+			XMVECTOR trans;
+			XMVECTOR rot;
+			XMVECTOR scale; // 스케일을 저장할 XMVECTOR
+
+			XMMatrixDecompose(&scale, &rot, &trans, transform);
+
+			XMStoreFloat3(&m_modelTranslation, trans);
+			XMStoreFloat3(&m_modelRotation, rot);
+			XMStoreFloat3(&m_modelScaling, scale);
+		}
+
 		// ImGui가 측정해주는 Framerate 출력
 		ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
@@ -462,49 +530,6 @@ namespace graphics
 			//	m_dirtyFlag = true;
 			//}
 			
-			XMMATRIX transform = XMMatrixIdentity(); // 초기화된 단위 행렬
-
-			// 이동, 회전 및 스케일을 변환 행렬에 적용합니다.
-			transform *= XMMatrixTranslationFromVector(XMLoadFloat3(&m_modelTranslation));
-			transform *= XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_modelRotation));
-			transform *= XMMatrixScalingFromVector(XMLoadFloat3(&m_modelScaling));
-			
-			ImGuizmo::SetOrthographic(false);
-			ImGuizmo::SetRect(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
-
-			float matrix[16];
-			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(matrix), transform);
-
-			float proj[16];
-			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(proj), m_camera.GetProjRow());
-
-			float view_mat[16];
-			XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(view_mat), m_camera.GetViewRow());
-			//// ImGuizmo를 사용하여 행렬 편집 위젯을 그립니다.
-			ImGuizmo::Manipulate(
-				/* view matrix */ view_mat,
-				/* projection matrix */ proj,
-				operation,
-				mode,
-				matrix
-			);
-
-				transform = XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(matrix));
-			//// 변경된 행렬을 다시 XMMATRIX로 변환합니다.
-			if (ImGuizmo::IsUsing())
-			{
-
-				XMVECTOR trans;
-				XMVECTOR rot;
-				XMVECTOR scale; // 스케일을 저장할 XMVECTOR
-
-				XMMatrixDecompose(&scale, &rot, &trans, transform);
-
-				XMStoreFloat3(&m_modelTranslation, trans);
-				XMStoreFloat3(&m_modelRotation, rot);
-				XMStoreFloat3(&m_modelScaling, scale);
-			}
-
 			ImGui::SliderFloat3("Translation", &m_modelTranslation.x, -2.0f, 2.0f);
 			ImGui::SliderFloat3("Rotation", &m_modelRotation.x, -3.14f, 3.14f);
 			ImGui::SliderFloat3("Scaling", &m_modelScaling.x, 0.1f, 2.0f);

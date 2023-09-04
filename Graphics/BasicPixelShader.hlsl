@@ -14,13 +14,20 @@ cbuffer BasicPixelConstantBuffer : register(b0)
     Light lights[MAX_LIGHTS];
     float3 rimColor;
     float rimPower;
+    float4 indexColor;
     float rimStrength;
-    bool useSmoothstep;
-    bool useRim;
 };
 
+struct PixelShaderOutput
+{
+    float4 pixelColor : SV_Target0;
+    float4 indexColor : SV_Target1;
+};
+
+//artist friendly metalic Fresnel
+//http://jcgt.org/published/0003/04/03/paper-lowres.pdf
 float3 SchlickFresnel(float3 fresnelR0, float3 edgeTint, float theta)
-{ 
+{
     //clamp parameters
     float3 r = clamp(fresnelR0, 0, 0.99);
     float3 g = edgeTint;
@@ -37,9 +44,9 @@ float3 SchlickFresnel(float3 fresnelR0, float3 edgeTint, float theta)
     float3 rs_den = n * n + k2 + 2.f * n * theta + theta * theta;
     float3 rs = rs_num / rs_den;
     
-    float3 rp_num = (n * n + k2) * theta * theta- 2 * n * theta + 1;
+    float3 rp_num = (n * n + k2) * theta * theta - 2 * n * theta + 1;
     float3 rp_den = (n * n + k2) * theta * theta + 2 * n * theta + 1;
-    float3 rp =  rp_num / rp_den;
+    float3 rp = rp_num / rp_den;
     return clamp(0.5f * (rs + rp), 0.f, 1.f);
 }
 
@@ -60,7 +67,7 @@ float3 SchlickFresnel2(float3 fresnelR0, float3 normal, float3 toEye)
     return fresnelR0 + (1.0f - fresnelR0) * pow(f0, 5.0);
 }
 
-float4 main(PixelShaderInput input) : SV_TARGET
+PixelShaderOutput main(PixelShaderInput input)
 {
     float3 toEye = normalize(eyeWorld - input.posWorld);
 
@@ -96,17 +103,17 @@ float4 main(PixelShaderInput input) : SV_TARGET
     uv.x = atan2(input.posModel.z, input.posModel.x) / (3.141592 * 2.0) + 0.5;
     uv.y = acos(input.posModel.y / 1.5) / 3.141592;
     
-    if (useRim)
-    {
-        float rim = (1.f - dot(input.normalWorld, toEye));
+    //if (useRim)
+    //{
+    //    float rim = (1.f - dot(input.normalWorld, toEye));
     
-        if (useSmoothstep)
-            rim = smoothstep(0.f, 1.f, rim);
+    //    if (useSmoothstep)
+    //        rim = smoothstep(0.f, 1.f, rim);
     
-        rim = pow(abs(rim), rimPower);
+    //    rim = pow(abs(rim), rimPower);
         
-        color += rim * rimColor * rimStrength;
-    }
+    //    color += rim * rimColor * rimStrength;
+    //}
 
     float3 reflectDir = reflect(-toEye, input.normalWorld);
     
@@ -123,18 +130,22 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float3 f = SchlickFresnel(material.fresnelR0, material.edgeTint, theta);
     specular.xyz *= f;
     
-    if (useRim)
-    {
-        //float3 f = SchlickFresnel(material.fresnelR0, material.edgeTint, theta);
-        //specular.xyz *= f;
+    //if (useRim)
+    //{
+    //    //float3 f = SchlickFresnel(material.fresnelR0, material.edgeTint, theta);
+    //    //specular.xyz *= f;
         
-        float3 f = SchlickFresnel2(material.fresnelR0, input.normalWorld, toEye);
-        specular.xyz *= f;
-    }
+    //    float3 f = SchlickFresnel2(material.fresnelR0, input.normalWorld, toEye);
+    //    specular.xyz *= f;
+    //}
+    
+    PixelShaderOutput output;
+    output.pixelColor = diffuse + specular;
+    output.indexColor = indexColor;
+        
+    output.pixelColor = useTexture ? diffuse * g_texture0.Sample(g_sampler, input.uv) + specular + diffuse : specular + diffuse;
     
     //return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) : float4(color, 1.0);
-    return useTexture ? diffuse * g_texture0.Sample(g_sampler, input.uv) + specular + diffuse
-                        : specular + diffuse;
-
+    return output;
 }
 

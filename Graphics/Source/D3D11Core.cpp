@@ -542,10 +542,58 @@ namespace graphics
 		ComPtr<ID3D11Texture2D> backBuffer;
 		m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
 		if (backBuffer) {
-			m_d3dDevice->CreateRenderTargetView(backBuffer.Get(), NULL,
+			m_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr,
 				m_renderTargetView.GetAddressOf());
-			m_d3dDevice->CreateShaderResourceView(backBuffer.Get(), NULL,
+
+			D3D11_TEXTURE2D_DESC desc;
+			backBuffer->GetDesc(&desc);
+			// 디버깅용
+			// cout << desc.Width << " " << desc.Height << " " << desc.Format <<
+			// endl;
+			desc.SampleDesc.Count = 1;
+			desc.SampleDesc.Quality = 0;
+			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			desc.MiscFlags = 0;
+
+			if (FAILED(m_d3dDevice->CreateTexture2D(&desc, nullptr,
+				m_tempTexture.GetAddressOf()))) {
+				std::cout << "Failed()\n";
+			}
+
+			if (FAILED(m_d3dDevice->CreateTexture2D(
+				&desc, nullptr, m_indexTempTexture.GetAddressOf()))) {
+				std::cout << "Failed()\n";
+			}
+
+			m_d3dDevice->CreateShaderResourceView(m_tempTexture.Get(), nullptr,
 				m_shaderResourceView.GetAddressOf());
+
+			// ShaderResource를 (backBuffer가 아니라) tempTexture로부터 생성 
+			//m_d3dDevice->CreateShaderResourceView(m_indexTempTexture.Get(), nullptr,
+			//	m_shaderResourceView.GetAddressOf());
+
+			// 1x1 작은 스테이징 텍스춰 만들기
+			desc.BindFlags = 0;
+			desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+			desc.Usage = D3D11_USAGE_STAGING;
+			desc.Width = 1;
+			desc.Height = 1;
+
+			if (FAILED(m_d3dDevice->CreateTexture2D(
+				&desc, nullptr, m_indexStagingTexture.GetAddressOf()))) {
+				std::cout << "Failed()\n";
+			}
+
+			// 마우스 피킹에 사용할 인덱스 색을 렌더링할 텍스쳐와 렌더타겟 생성
+			backBuffer->GetDesc(&desc); // BackBuffer와 동일한 설정
+			if (FAILED(m_d3dDevice->CreateTexture2D(&desc, nullptr,
+				m_indexTexture.GetAddressOf()))) {
+				std::cout << "Failed()\n";
+			}
+			m_d3dDevice->CreateRenderTargetView(
+				m_indexTexture.Get(), nullptr,
+				m_indexRenderTargetView.GetAddressOf());
+
 		}
 		else {
 			std::cout << "CreateRenderTargetView() failed." << std::endl;
@@ -599,11 +647,11 @@ namespace graphics
 
 		if (FAILED(m_d3dDevice->CreateTexture2D(
 			&depthStencilBufferDesc, 0, m_depthStencilBuffer.GetAddressOf()))) {
-			std::cout << "CreateTexture2D() failed." << std::endl;
+			std::cout << "CreateTexture2D() failed.\n";
 		}
 		if (FAILED(m_d3dDevice->CreateDepthStencilView(m_depthStencilBuffer.Get(), 0,
 			&m_depthStencilView))) {
-			std::cout << "CreateDepthStencilView() failed." << std::endl;
+			std::cout << "CreateDepthStencilView() failed.\n";
 		}
 		return true;
 	}

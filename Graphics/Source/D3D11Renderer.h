@@ -26,6 +26,7 @@ namespace graphics
 
 	protected:
 		Model my_Mesh1;
+		Model my_Mesh2;
 
 		std::vector<std::shared_ptr<D3D11PostProcess>> m_postProcesses;
 
@@ -71,6 +72,8 @@ namespace graphics
 
 		CubeMap m_cubeMap;
 		XMMATRIX m_matrix = XMMatrixIdentity();
+		XMFLOAT4 m_pickColor = XMFLOAT4();
+		
 
 		int m_dirtyflag = 1; // 처음에 한 번 실행
 		int m_down = 16;
