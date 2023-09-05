@@ -71,9 +71,7 @@ namespace graphics
 		bool m_dirtyFlag = false;
 
 		CubeMap m_cubeMap;
-		XMMATRIX m_matrix = XMMatrixIdentity();
-		XMFLOAT4 m_pickColor = XMFLOAT4();
-		
+		uint8_t m_pickColor[4] = { 0, };
 
 		int m_dirtyflag = 1; // 처음에 한 번 실행
 		int m_down = 16;

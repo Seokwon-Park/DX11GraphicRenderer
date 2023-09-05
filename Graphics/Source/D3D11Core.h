@@ -64,6 +64,10 @@ namespace graphics
 		HWND m_mainWindow;
 		UINT m_numQualityLevels = 0;
 
+		// Mouse Vars
+		int m_cursorX;
+		int m_cursorY;
+
 		// D3D11 Base		
 		// 1. 디바이스, 컨텍스트
 		ComPtr<ID3D11Device> m_d3dDevice;
@@ -94,6 +98,7 @@ namespace graphics
 		ComPtr<ID3D11DepthStencilState> m_depthStencilState;
 		// 5. Viewport
 		D3D11_VIEWPORT m_screenViewport;
+		D3D11_VIEWPORT m_screenViewport2;
 		D3D11Camera m_camera;
 
 		bool m_keyPressed[256] = {

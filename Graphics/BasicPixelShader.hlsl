@@ -143,7 +143,7 @@ PixelShaderOutput main(PixelShaderInput input)
     output.pixelColor = diffuse + specular;
     output.indexColor = indexColor;
         
-    output.pixelColor = useTexture ? diffuse * g_texture0.Sample(g_sampler, input.uv) + specular + diffuse : specular + diffuse;
+    output.pixelColor = useTexture ? diffuse * g_texture0.Sample(g_sampler, input.uv) + specular : specular + diffuse;
     
     //return useTexture ? float4(color, 1.0) * g_texture0.Sample(g_sampler, input.uv) : float4(color, 1.0);
     return output;

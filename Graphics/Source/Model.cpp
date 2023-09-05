@@ -43,7 +43,7 @@ namespace graphics
 		CreateConstantBuffer(device, m_basicPixelConstantBufferData,
 			pixelConstantBuffer);
 		
-		m_basicPixelConstantBufferData.indexColor = XMFLOAT4(1.0f, 0.0f, 1.0f, 0.0f);
+		m_basicPixelConstantBufferData.indexColor = XMFLOAT4(1.f, 0.0f, 0.0f, 0.0f);
 
 
 		for (const auto& meshData : meshesData) {
@@ -90,5 +90,38 @@ namespace graphics
 		D3D11Utilities::CreatePixelShader(device, L"BasicPixelShader.hlsl", m_colorPixelShader);
 
 		return true;
+	}
+
+	void Model::Render(ComPtr<ID3D11DeviceContext>& context)
+	{
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
+
+		// 버텍스/인덱스 버퍼 설정
+		for (const auto& mesh : meshes) {
+			context->VSSetConstantBuffers(
+				0, 1, mesh->vertexConstantBuffer.GetAddressOf());
+
+			ID3D11ShaderResourceView* srv[3] = {
+				mesh->textureResourceView.Get(),
+				diffuseSRV.Get(),
+				specularSRV.Get()
+			};
+
+			context->PSSetShaderResources(
+				0, 3, srv);
+
+			context->PSSetConstantBuffers(
+				0, 1, mesh->pixelConstantBuffer.GetAddressOf());
+
+			context->IASetInputLayout(m_colorInputLayout.Get());
+			context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
+				&stride, &offset);
+			context->IASetIndexBuffer(mesh->indexBuffer.Get(),
+				DXGI_FORMAT_R32_UINT, 0);
+			context->IASetPrimitiveTopology(
+				D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			context->DrawIndexed(mesh->m_indexCount, 0, 0);
+		}
 	}
 }

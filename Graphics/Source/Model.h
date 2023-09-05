@@ -15,6 +15,7 @@ namespace graphics
 	public:
 		bool Intialize(ComPtr<ID3D11Device>& device, const std::string filename);
 		bool Intialize(ComPtr<ID3D11Device>& device, std::vector<MeshData>& meshes);
+		void Render(ComPtr<ID3D11DeviceContext>& context);
 
 		std::vector<std::shared_ptr<Mesh>> meshes;
 
@@ -24,6 +25,8 @@ namespace graphics
 		ComPtr<ID3D11InputLayout> m_colorInputLayout;
 		ComPtr<ID3D11PixelShader> m_colorPixelShader;
 
+		ComPtr<ID3D11ShaderResourceView> diffuseSRV;
+		ComPtr<ID3D11ShaderResourceView> specularSRV;			
 
 		// ConstantBufferData(Cpp) -> ConstantBuffer(Shader)
 		BasicVertexConstantBuffer m_basicVertexConstantBufferData;

@@ -80,7 +80,6 @@ namespace graphics
 				ImGui_ImplDX11_NewFrame(); // GUI 프레임 시작
 				ImGui_ImplWin32_NewFrame();
 
-
 				//static bool test = true;
 				ImGui::NewFrame(); // 어떤 것들을 렌더링 할지 기록 시작
 				ImGuizmo::BeginFrame();
@@ -96,13 +95,14 @@ namespace graphics
 				//auto size = ImGui::GetWindowSize();
 
 				//ImGui::SetWindowPos(ImVec2(0.f, 0.f));
+
 				m_guiWidth = 0.f;
 
+				Update(ImGui::GetIO().DeltaTime); // 애니메이션 같은 변화
 
 				ImGui::Render(); // 렌더링할 것들 기록 끝
 
 				// DX11
-				Update(ImGui::GetIO().DeltaTime); // 애니메이션 같은 변화
 
 				Render(); // 우리가 구현한 렌더링
 				// DX11 END
@@ -184,6 +184,10 @@ namespace graphics
 			break;
 		case WM_MOUSEMOVE:
 			//std::cout << "Mouse " << LOWORD(lParam) << " " << HIWORD(lParam) << std::endl;
+
+			m_cursorX = LOWORD(lParam);
+			m_cursorY = HIWORD(lParam);
+
 			if(m_useFPV)
 				OnMouseMove(wParam, LOWORD(lParam), HIWORD(lParam));
 			break;
@@ -363,14 +367,14 @@ namespace graphics
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
 			style.WindowPadding = ImVec2(10, 10);
-			style.WindowRounding = 3.0f;
-			style.FramePadding = ImVec2(5, 5);
-			style.FrameRounding = 3.0f;
+			style.WindowRounding = 0.f;
+			style.FramePadding = ImVec2(0, 1);
+			style.FrameRounding = 0.f;
 			style.ItemSpacing = ImVec2(12, 8);
 			style.ItemInnerSpacing = ImVec2(8, 6);
 			style.IndentSpacing = 15.0f;
 			style.ScrollbarSize = 15.0f;
-			style.ScrollbarRounding = 3.0f;
+			style.ScrollbarRounding = 0.f;
 			style.GrabMinSize = 10.0f;
 			style.GrabRounding = 2.0f;
 				 
