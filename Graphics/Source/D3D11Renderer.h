@@ -15,7 +15,7 @@ namespace graphics
 	class D3D11Renderer : public D3D11Core
 	{
 	public:
-		void BuildFilters();
+		void CreateBloom();
 
 		D3D11Renderer();
 

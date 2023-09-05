@@ -40,11 +40,11 @@ namespace graphics {
 
         float m_speed = 1.0f; // 움직이는 속도
 
-        // 프로젝션 옵션도 카메라 클래스로 이동
+        // Proj Option
         float m_projFovAngleY = 70.0f;
         float m_nearZ = 0.01f;
         float m_farZ = 100.0f;
         float m_aspect = 16.0f / 9.0f;
         bool m_usePerspectiveProjection = true;
     };
-} // namespace hlab
+} // namespace graphics

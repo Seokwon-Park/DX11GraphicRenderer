@@ -19,4 +19,4 @@ namespace graphics {
     public:
         std::vector<MeshData> meshes;
     };
-} // namespace hlab
+} // namespace graphics

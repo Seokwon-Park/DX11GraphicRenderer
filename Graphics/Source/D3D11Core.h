@@ -106,5 +106,6 @@ namespace graphics
 		};
 
 		bool m_useFPV = false;
+		bool m_leftButton = false;
 	};
 }

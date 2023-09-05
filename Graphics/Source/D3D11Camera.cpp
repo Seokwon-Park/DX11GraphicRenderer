@@ -62,4 +62,4 @@ namespace graphics {
             : XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f,
                 1.0f, m_nearZ, m_farZ);
     }
-} // namespace hlab
+} // namespace graphics

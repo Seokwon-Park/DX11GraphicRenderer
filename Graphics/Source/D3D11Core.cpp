@@ -191,8 +191,13 @@ namespace graphics
 			if(m_useFPV)
 				OnMouseMove(wParam, LOWORD(lParam), HIWORD(lParam));
 			break;
+		case WM_LBUTTONDOWN:
+			std::cout << "WM_LBUTTONUP Left mouse button down\n";
+			m_leftButton = true;
+			break;
 		case WM_LBUTTONUP:
-			// cout << "WM_LBUTTONUP Left mouse button" << endl;
+			std::cout << "WM_LBUTTONUP Left mouse button up\n";
+			m_leftButton = false;
 			break;
 		case WM_RBUTTONUP:
 			// cout << "WM_RBUTTONUP Right mouse button" << endl;
@@ -368,10 +373,10 @@ namespace graphics
 
 			style.WindowPadding = ImVec2(10, 10);
 			style.WindowRounding = 0.f;
-			style.FramePadding = ImVec2(0, 1);
+			style.FramePadding = ImVec2(0, 2);
 			style.FrameRounding = 0.f;
-			style.ItemSpacing = ImVec2(12, 8);
-			style.ItemInnerSpacing = ImVec2(8, 6);
+			style.ItemSpacing = ImVec2(2,10);
+			style.ItemInnerSpacing = ImVec2(0, 0);
 			style.IndentSpacing = 15.0f;
 			style.ScrollbarSize = 15.0f;
 			style.ScrollbarRounding = 0.f;

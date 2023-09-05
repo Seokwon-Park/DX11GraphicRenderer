@@ -133,4 +133,4 @@ namespace graphics {
         return newMesh;
     }
 
-} // namespace hlab
+} // namespace graphics

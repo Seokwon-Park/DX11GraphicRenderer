@@ -86,7 +86,7 @@ namespace graphics
 			ImGui::End();
 		}
 
-		void DrawVector3Control(const std::string& label, XMFLOAT3& values, float resetValue = 0.f, float columnWidth = 100.f)
+		void DrawXMFLOAT3Control(const std::string& label, XMFLOAT3& values, float resetValue = 0.f, float columnWidth = 100.f)
 		{
 			ImGui::PushID(label.c_str());
 
@@ -95,37 +95,45 @@ namespace graphics
 			ImGui::Text(label.c_str());
 			ImGui::NextColumn();
 
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 5,0 });
-			
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0,0 });
+
 			float width = ImGui::GetColumnWidth() - columnWidth;
 
 			float lineHeight = ImGui::GetFrameHeight();
 			ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
-			ImGui::PushItemWidth(width/3);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ .8f, .1f, .1f, 1.f });
+			ImGui::PushItemWidth(width / 3);
 			if (ImGui::Button("X", buttonSize))
 				values.x = resetValue;
+			ImGui::PopStyleColor();
 			ImGui::SameLine();
 			ImGui::DragFloat("##X", &values.x, 0.f, -1.f, 1.f, "%.2f");
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
-			ImGui::PushItemWidth(width /3);
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ .1f, .8f, .1f, 1.f });
+			ImGui::PushItemWidth(width / 3);
 			if (ImGui::Button("Y", buttonSize))
 				values.y = resetValue;
+			ImGui::PopStyleColor();
+
 			ImGui::SameLine();
 			ImGui::DragFloat("##Y", &values.y, 0.f, -1.f, 1.f, "%.2f");
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ .1f, .1f, .8f, 1.f });
 			ImGui::PushItemWidth(width / 3);
 			if (ImGui::Button("Z", buttonSize))
 				values.z = resetValue;
+			ImGui::PopStyleColor();
+
 			ImGui::SameLine();
 			ImGui::DragFloat("##Z", &values.z, 0.f, -1.f, 1.f, "%.2f");
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
-			ImGui::PopStyleVar(); 
+			ImGui::PopStyleVar();
 
 			ImGui::Columns(1);
 
@@ -133,14 +141,14 @@ namespace graphics
 		}
 
 	}// anonymouse namespace 
-	void D3D11Renderer::BuildFilters() {
+	void D3D11Renderer::CreateBloom() {
 
 		m_postProcesses.clear();
 
 		std::shared_ptr<D3D11PostProcess> copyFilter =
 			std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
 				m_screenWidth, m_screenHeight);
-		copyFilter->SetShaderResources({this->m_shaderResourceView});
+		copyFilter->SetShaderResources({ this->m_shaderResourceView });
 		m_postProcesses.push_back(copyFilter);
 
 		std::shared_ptr<D3D11PostProcess> blurFilter =
@@ -152,15 +160,15 @@ namespace graphics
 		m_postProcesses.push_back(blurFilter);
 		for (int down = m_down; down >= 1; down /= 2)
 		{
-			for (int i = 0; i < 5; i++) 
+			for (int i = 0; i < 5; i++)
 			{
 				auto& prevResource = m_postProcesses.back()->m_shaderResourceView;
 				m_postProcesses.push_back(std::make_shared<D3D11PostProcess>(
 					m_d3dDevice, m_d3dContext, L"Sampling", L"Blur",
-					m_screenWidth / m_down, m_screenHeight / m_down));
+					m_screenWidth, m_screenHeight));
 				m_postProcesses.back()->SetShaderResources({ prevResource });
 			}
-			if (down > 1) 
+			if (down > 1)
 			{
 				auto upFilter = std::make_shared<D3D11PostProcess>(
 					m_d3dDevice, m_d3dContext, L"Sampling", L"Sampling",
@@ -176,45 +184,45 @@ namespace graphics
 			std::make_shared<D3D11PostProcess>(m_d3dDevice, m_d3dContext, L"Sampling", L"Combine",
 				m_screenWidth, m_screenHeight);
 		combineFilter->SetShaderResources({ copyFilter->m_shaderResourceView,
-										   m_postProcesses.back()->m_shaderResourceView});
+										   m_postProcesses.back()->m_shaderResourceView });
 		combineFilter->SetRenderTargets({ this->m_renderTargetView });
 		combineFilter->m_pixelConstData.strength = m_strength;
 		combineFilter->UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 		m_postProcesses.push_back(combineFilter);
 	}
 
-	D3D11Renderer::D3D11Renderer() : D3D11Core(){}
+	D3D11Renderer::D3D11Renderer() : D3D11Core() {}
 
 
 	bool D3D11Renderer::Initialize()
 	{
-	
+
 		// Initialize Essentials
 		if (!D3D11Core::Initialize())
 			return false;
 
-		if(!m_cubeMap.Initialize(
+		if (!m_cubeMap.Initialize(
 			m_d3dDevice,
 			L"d:/Atrium_diffuseIBL.dds",
 			L"d:/Atrium_specularIBL.dds"))
 			return false;
 
-		//if (!my_Mesh1.Intialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
-		//	return false;
+		if (!my_Mesh1.Intialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
+			return false;
 
 		std::vector<MeshData> meshes;
 		meshes.push_back(Geometry::MakeSphere(1.f, 20, 20));
 		meshes[0].textureFilename = "d:/earth.jpg";
 
 		std::vector<MeshData> meshes2;
-		meshes2.push_back(Geometry::MakeCube(1.f,1.f,1.f));
+		meshes2.push_back(Geometry::MakeCube(1.f, 1.f, 1.f));
 		meshes2[0].textureFilename = "d:/earth.jpg";
 
-		if (!my_Mesh1.Intialize(m_d3dDevice, meshes))
-			return false;
+		/*if (!my_Mesh1.Intialize(m_d3dDevice, meshes))
+			return false;*/
 
 		my_Mesh1.diffuseSRV = m_cubeMap.diffuseSRV;
-		my_Mesh1.specularSRV= m_cubeMap.specularSRV;
+		my_Mesh1.specularSRV = m_cubeMap.specularSRV;
 
 		if (!my_Mesh2.Intialize(m_d3dDevice, meshes2))
 			return false;
@@ -254,7 +262,7 @@ namespace graphics
 		//	L"NormalVertexShader.hlsl", inputElements, m_normalVertexShader,
 		//	m_colorInputLayout);
 		//D3D11Utilities::CreatePixelShader(m_d3dDevice, L"NormalPixelShader.hlsl", m_normalPixelShader);
-		BuildFilters();
+		CreateBloom();
 
 		//Initialize Success
 		return true;
@@ -280,10 +288,10 @@ namespace graphics
 				m_camera.MoveRight(-dt);
 		}
 
-		
+
 		// 모델의 변환
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
-			XMMatrixRotationY(m_modelRotation.y*XM_PI) *
+			XMMatrixRotationY(m_modelRotation.y * XM_PI) *
 			XMMatrixRotationX(m_modelRotation.x * XM_PI) *
 			XMMatrixRotationZ(m_modelRotation.z * XM_PI) *
 			XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
@@ -302,19 +310,66 @@ namespace graphics
 
 		my_Mesh1.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
 		my_Mesh1.m_basicVertexConstantBufferData.view = XMMatrixTranspose(viewRow);
-		my_Mesh1.m_basicVertexConstantBufferData.projection =
-			XMMatrixTranspose(projRow);
-		
+		my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(projRow);
+
 		my_Mesh2.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
 		my_Mesh2.m_basicVertexConstantBufferData.view = XMMatrixTranspose(viewRow);
-		my_Mesh2.m_basicVertexConstantBufferData.projection =
-			XMMatrixTranspose(projRow);
+		my_Mesh2.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(projRow);
 
 
 		if (m_pickColor[0] == 255) {
 			my_Mesh1.m_basicPixelConstantBufferData.material.diffuse =
 				XMFLOAT3(1.0f, 0.1f, 0.1f);
 		}
+
+		//// 마우스 클릭했을 때만 업데이트
+		//if (m_leftButton) {
+
+		//	// OnMouseMove()에서 m_cursorNdcX, m_cursorNdcY 저장
+
+		//	// ViewFrustum에서 가까운 면 위의 커서 위치 (z값 주의)
+		//	XMVECTOR cursorNdcNear = XMVectorSet(m_cursorX, m_cursorY, 0.0f, 1.f);
+
+		//	// ViewFrustum에서 먼 면 위의 커서 위치 (z값 주의)
+		//	XMVECTOR cursorNdcFar = XMVectorSet(m_cursorX, m_cursorY, 1.0f, 1.f);
+
+		//	// NDC 커서 위치를 월드 좌표계로 역변환 해주는 행렬
+		//	XMMATRIX inverseProjView = XMMatrixInverse(nullptr, viewRow * projRow);
+
+		//	// ViewFrustum 안에서 PickingRay의 방향 구하기
+		//	XMVECTOR cursorWorldNear =
+		//		XMVector3Transform(cursorNdcNear, inverseProjView);
+		//	XMVECTOR cursorWorldFar =
+		//		XMVector3Transform(cursorNdcFar, inverseProjView);
+
+		//	XMVECTOR dir = cursorWorldFar - cursorWorldNear;
+		//	XMVector3Normalize(dir);
+
+		//	// 광선을 만들고 충돌 감지
+		//	SimpleMath::Ray curRay = SimpleMath::Ray(cursorWorldNear, dir);
+		//	float dist = 0.0f;
+		//	m_selected = curRay.Intersects(m_mainBoundingSphere, dist);
+
+		//	if (m_selected) {
+		//		m_cursorSphere.m_basicPixelConstantData.eyeWorld = eyeWorld;
+
+		//		// 충돌 지점에 작은 구 그리기
+		//		XMMATRIX modelMat =
+		//			XMMATRIX::CreateTranslation(cursorWorldNear + dist * dir); //TODO:
+
+		//		XMMATRIX invTransposeRow = modelMat;
+		//		invTransposeRow.Translation(XMFLOAT3(0.0f));
+		//		invTransposeRow = invTransposeRow.Invert().Transpose();
+		//		m_cursorSphere.m_basicVertexConstantData.model =
+		//			modelMat.Transpose();
+		//		m_cursorSphere.m_basicVertexConstantData.invTranspose =
+		//			invTransposeRow.Transpose();
+		//		m_cursorSphere.m_basicVertexConstantData.view = viewRow.Transpose();
+		//		m_cursorSphere.m_basicVertexConstantData.projection =
+		//			projRow.Transpose();
+		//		m_cursorSphere.UpdateConstantBuffers(m_device, m_context);
+		//	}
+		//}
 
 		/*my_Mesh1.m_basicVertexConstantBufferData.view =
 			XMMatrixRotationX(m_viewRot.x) *
@@ -323,31 +378,31 @@ namespace graphics
 			XMMatrixTranslation(0.0f, 0.0f, 2.0f);
 
 
-		XMStoreFloat3(&my_Mesh1.m_basicPixelConstantBufferData.eyeWorld, XMVector3Transform(
+		XMStoreFloat3(&my_Mesh1.m_basicPixelConstantBufferData.eyeWorld, XMXMFLOAT3Transform(
 			XMVectorZero(), XMMatrixInverse(nullptr, my_Mesh1.m_basicVertexConstantBufferData.view)));
 
 		my_Mesh1.m_basicVertexConstantBufferData.view =
 			XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.view);*/
 
-		//// 프로젝션
-		//m_aspect = D3D11Core::GetAspectRatio();
-		//if (m_usePerspectiveProjection) {
-		//	my_Mesh1.m_basicVertexConstantBufferData.projection =
-		//		XMMatrixPerspectiveFovLH(XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
-		//}
-		//else {
-		//	my_Mesh1.m_basicVertexConstantBufferData.projection =
-		//		XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f, 1.0f, m_nearZ, m_farZ);
-		//}
-		//my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.projection);
+			//// 프로젝션
+			//m_aspect = D3D11Core::GetAspectRatio();
+			//if (m_usePerspectiveProjection) {
+			//	my_Mesh1.m_basicVertexConstantBufferData.projection =
+			//		XMMatrixPerspectiveFovLH(XMConvertToRadians(m_projFovAngleY), m_aspect, m_nearZ, m_farZ);
+			//}
+			//else {
+			//	my_Mesh1.m_basicVertexConstantBufferData.projection =
+			//		XMMatrixOrthographicOffCenterLH(-m_aspect, m_aspect, -1.0f, 1.0f, m_nearZ, m_farZ);
+			//}
+			//my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.projection);
 
-		// Constant를 CPU에서 GPU로 복사
+			// Constant를 CPU에서 GPU로 복사
 		UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
 		UpdateBuffer(m_d3dContext, my_Mesh2.m_basicVertexConstantBufferData, my_Mesh2.meshes[0]->vertexConstantBuffer);
 
 		// light별 fallofEnd fallofStart값을 변경하지 않기 위해 복사해서 사용
 		auto basicPixelData{ my_Mesh1.m_basicPixelConstantBufferData };
-		auto basicPixelData2 { my_Mesh2.m_basicPixelConstantBufferData };
+		auto basicPixelData2{ my_Mesh2.m_basicPixelConstantBufferData };
 
 		// 여러 개 조명 사용 예시
 		for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -388,7 +443,7 @@ namespace graphics
 			CreateXMFLOAT3(m_materialDiffuse);
 		my_Mesh1.m_basicPixelConstantBufferData.material.specular =
 			CreateXMFLOAT3(m_materialSpecular);
-		my_Mesh1.m_basicPixelConstantBufferData.material.fresnelR0=
+		my_Mesh1.m_basicPixelConstantBufferData.material.fresnelR0 =
 			m_fresnelR0;
 
 		// post effects
@@ -435,7 +490,7 @@ namespace graphics
 		else
 			m_d3dContext->RSSetState(m_solidRasterizerState.Get());
 
-	
+
 
 		//if (m_drawNormals) {
 		//	m_d3dContext->VSSetShader(m_normalVertexShader.Get(), 0, 0);
@@ -463,17 +518,72 @@ namespace graphics
 		m_d3dContext->ResolveSubresource(m_tempTexture.Get(), 0, backBuffer.Get(), 0,
 			DXGI_FORMAT_R8G8B8A8_UNORM);
 
-		for (auto& m_postProcess : m_postProcesses) {
-			m_postProcess->Render(m_d3dContext);
-		}
+		//for (auto& m_postProcess : m_postProcesses) {
+		//	m_postProcess->Render(m_d3dContext);
+		//}
 
 		m_d3dContext->ResolveSubresource(m_indexTempTexture.Get(), 0,
 			m_indexTexture.Get(), 0,
 			DXGI_FORMAT_R8G8B8A8_UNORM);
 
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// Set the viewport
+		ZeroMemory(&m_screenViewport2, sizeof(D3D11_VIEWPORT));
+		m_screenViewport2.TopLeftX = float(m_guiWidth);
+		m_screenViewport2.TopLeftY = 0;
+		m_screenViewport2.Width = 300;
+		m_screenViewport2.Height = 300;
+		//m_screenViewport.Width = static_cast<float>(m_screenHeight);
+		m_screenViewport2.MinDepth = 0.0f;
+		m_screenViewport2.MaxDepth = 1.0f;
+
+		m_d3dContext->RSSetViewports(1, &m_screenViewport2);
+
+		m_d3dContext->ClearRenderTargetView(m_indexRenderTargetView.Get(), clearColor);
+		m_d3dContext->ClearDepthStencilView(m_depthStencilView.Get(),
+			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		m_d3dContext->OMSetRenderTargets(1, m_indexRenderTargetView.GetAddressOf(), m_depthStencilView.Get());
+		m_d3dContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+
+		// 어떤 쉐이더를 사용할지 설정
+		m_d3dContext->VSSetShader(my_Mesh1.m_colorVertexShader.Get(), 0, 0);
+
+		m_d3dContext->PSSetSamplers(0, 1, my_Mesh1.m_samplerState.GetAddressOf());
+		m_d3dContext->PSSetShader(my_Mesh1.m_colorPixelShader.Get(), 0, 0);
+
+		if (m_drawAsWire)
+			m_d3dContext->RSSetState(m_wiredRasterizerState.Get());
+		else
+			m_d3dContext->RSSetState(m_solidRasterizerState.Get());
+
+
+
+		//if (m_drawNormals) {
+		//	m_d3dContext->VSSetShader(m_normalVertexShader.Get(), 0, 0);
+
+		//	m_d3dContext->VSSetConstantBuffers(1, 1, m_normalLines->vertexConstantBuffer.GetAddressOf());
+
+		//	m_d3dContext->PSSetShader(m_normalPixelShader.Get(), 0, 0);
+		//	// m_d3dContext->IASetInputLayout(m_basicInputLayout.Get());
+		//	m_d3dContext->IASetVertexBuffers(
+		//		0, 1, m_normalLines->vertexBuffer.GetAddressOf(), &stride,
+		//		&offset);
+		//	m_d3dContext->IASetIndexBuffer(m_normalLines->indexBuffer.Get(),
+		//		DXGI_FORMAT_R32_UINT, 0);
+
+		//	m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		//	m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
+		//}
+		my_Mesh1.Render(m_d3dContext);
+		//my_Mesh2.Render(m_d3dContext);
+
+		m_cubeMap.Render(m_d3dContext);
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		//1x1 pixel box
 		D3D11_BOX box;
-		 
+
 
 		if (m_cursorX >= m_screenWidth)
 		{
@@ -545,9 +655,9 @@ namespace graphics
 
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::TreeNode("Transform")) {
-			DrawVector3Control("Translation", m_modelTranslation);
-			DrawVector3Control("Rotation", m_modelRotation);
-			DrawVector3Control("Scale", m_modelScaling, .5f);
+			DrawXMFLOAT3Control("Translation", m_modelTranslation);
+			DrawXMFLOAT3Control("Rotation", m_modelRotation);
+			DrawXMFLOAT3Control("Scale", m_modelScaling, .5f);
 
 			ImGui::TreePop();
 		}

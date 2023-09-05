@@ -62,4 +62,4 @@ namespace graphics {
         std::vector<ID3D11ShaderResourceView*> m_shaderResources;
         std::vector<ID3D11RenderTargetView*> m_renderTargets;
     };
-} // namespace hlab
+} // namespace graphics
