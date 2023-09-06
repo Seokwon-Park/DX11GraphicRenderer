@@ -64,48 +64,66 @@ namespace graphics
 		HWND m_mainWindow;
 		UINT m_numQualityLevels = 0;
 
-		// Mouse Vars
-		int m_cursorX;
-		int m_cursorY;
-
 		// D3D11 Base		
 		// 1. 디바이스, 컨텍스트
 		ComPtr<ID3D11Device> m_d3dDevice;
 		ComPtr<ID3D11DeviceContext> m_d3dContext;
 		// 2. Swapchain
 		ComPtr<IDXGISwapChain> m_swapChain;
+
 		// 3. 렌더타겟 뷰(RTV)
 		ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 		ComPtr<ID3D11RenderTargetView> m_indexRenderTargetView;
 		ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
 
+		// RenderTargetView에서 원본을 여기에 그림
 		ComPtr<ID3D11Texture2D> m_tempTexture;
+		// indexRenderTargetView가 그리는 indexColor로 표시된 이미지를 여기에 그림.
 		ComPtr<ID3D11Texture2D> m_indexTexture;
+
+		// indexTexture를 복사해서 가져옴
 		ComPtr<ID3D11Texture2D> m_indexTempTexture;
+		// indexTempTexture에서 1x1크기의 픽셀을 추출한다.
 		ComPtr<ID3D11Texture2D> m_indexStagingTexture;
 
 		// 4. RasterizerState
 		ComPtr<ID3D11RasterizerState> m_solidRasterizerState;
 		ComPtr<ID3D11RasterizerState> m_wiredRasterizerState;
 		bool m_drawAsWire = false;
-
+		bool m_usePostProcessing = true;
 
 		// Depth buffer 관련
 		ComPtr<ID3D11Texture2D> m_depthStencilBuffer;
 		
-		
 		ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 		ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+		
 		// 5. Viewport
 		D3D11_VIEWPORT m_screenViewport;
-		D3D11_VIEWPORT m_screenViewport2;
-		D3D11Camera m_camera;
 
+		// 아직 동작안함.
+		D3D11_VIEWPORT m_screenViewport2;
+
+		// Camera
+		D3D11Camera m_camera;
+		// First Person View
+		bool m_useFPV = false;
+
+		// Keyboard Event
 		bool m_keyPressed[256] = {
 			false,
 		};
 
-		bool m_useFPV = false;
+		// MouseEvent
 		bool m_leftButton = false;
+		bool m_rightButton = false;
+		bool m_dragStartFlag = false;
+		bool m_selected = false;
+
+		// Mouse Position
+		int m_cursorX = 0;
+		int m_cursorY = 0;
+		float m_cursorNdcX = 0.0f;
+		float m_cursorNdcY = 0.0f;
 	};
 }

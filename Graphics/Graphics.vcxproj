@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\DXRay.cpp" />
     <ClCompile Include="Source\AssimpLoader.cpp" />
     <ClCompile Include="Source\CubeMap.cpp" />
     <ClCompile Include="Source\D3D11Camera.cpp" />
@@ -149,6 +150,7 @@
     <ClCompile Include="Source\Model.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\DXRay.h" />
     <ClInclude Include="Source\D3D11Camera.h" />
     <ClInclude Include="Source\D3D11PostProcess.h" />
     <ClInclude Include="Source\AssimpLoader.h" />

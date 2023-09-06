@@ -2,11 +2,11 @@
 
 namespace graphics
 {
-	bool Model::Intialize(ComPtr<ID3D11Device>& device, const std::string filename)
+	bool Model::Initialize(ComPtr<ID3D11Device>& device, const std::string filename)
 	{
 		std::vector<MeshData> meshesData = Geometry::ReadModelFromFile(filename);
 
-		if (!Intialize(device, meshesData))
+		if (!Initialize(device, meshesData))
 		{
 			return false;
 		}
@@ -14,7 +14,7 @@ namespace graphics
 		return true;
 	}
 
-	bool Model::Intialize(ComPtr<ID3D11Device>& device, std::vector<MeshData>& meshesData)
+	bool Model::Initialize(ComPtr<ID3D11Device>& device, const std::vector<MeshData>& meshesData)
 	{
 		// Texture sampler 만들기
 		D3D11_SAMPLER_DESC samplerDesc;
@@ -35,13 +35,12 @@ namespace graphics
 		m_basicVertexConstantBufferData.view = XMMatrixIdentity();
 		m_basicVertexConstantBufferData.projection = XMMatrixIdentity();
 
-		ComPtr<ID3D11Buffer> vertexConstantBuffer;
-		ComPtr<ID3D11Buffer> pixelConstantBuffer;
+
 
 		CreateConstantBuffer(device, m_basicVertexConstantBufferData,
-			vertexConstantBuffer);
+			m_vertexConstantBuffer);
 		CreateConstantBuffer(device, m_basicPixelConstantBufferData,
-			pixelConstantBuffer);
+			m_pixelConstantBuffer);
 		
 		m_basicPixelConstantBufferData.indexColor = XMFLOAT4(1.f, 0.0f, 0.0f, 0.0f);
 
@@ -59,8 +58,8 @@ namespace graphics
 					newMesh->textureResourceView);
 			}
 
-			newMesh->vertexConstantBuffer = vertexConstantBuffer;
-			newMesh->pixelConstantBuffer = pixelConstantBuffer;
+			newMesh->vertexConstantBuffer = m_vertexConstantBuffer;
+			newMesh->pixelConstantBuffer = m_pixelConstantBuffer;
 
 			meshes.push_back(newMesh);
 		}
@@ -90,6 +89,21 @@ namespace graphics
 		D3D11Utilities::CreatePixelShader(device, L"BasicPixelShader.hlsl", m_colorPixelShader);
 
 		return true;
+	}
+	void Model::UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context)
+	{
+		UpdateBuffer(context, m_basicVertexConstantBufferData,
+			m_vertexConstantBuffer);
+
+		UpdateBuffer(context, m_basicPixelConstantBufferData,
+			m_pixelConstantBuffer);
+
+		// 노멀 벡터 그리기
+		//if (m_drawNormals && m_drawNormalsDirtyFlag) {
+		//	D3D11Utils::UpdateBuffer(device, context, m_normalVertexConstantData,
+		//		m_normalVertexConstantBuffer);
+		//	m_drawNormalsDirtyFlag = false;
+		//}
 	}
 
 	void Model::Render(ComPtr<ID3D11DeviceContext>& context)

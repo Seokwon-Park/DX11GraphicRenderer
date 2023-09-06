@@ -13,8 +13,9 @@ namespace graphics
 	class Model
 	{
 	public:
-		bool Intialize(ComPtr<ID3D11Device>& device, const std::string filename);
-		bool Intialize(ComPtr<ID3D11Device>& device, std::vector<MeshData>& meshes);
+		bool Initialize(ComPtr<ID3D11Device>& device, const std::string filename);
+		bool Initialize(ComPtr<ID3D11Device>& device, const std::vector<MeshData>& meshes);
+		void UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context);
 		void Render(ComPtr<ID3D11DeviceContext>& context);
 
 		std::vector<std::shared_ptr<Mesh>> meshes;
@@ -27,6 +28,9 @@ namespace graphics
 
 		ComPtr<ID3D11ShaderResourceView> diffuseSRV;
 		ComPtr<ID3D11ShaderResourceView> specularSRV;			
+
+		ComPtr<ID3D11Buffer> m_vertexConstantBuffer;
+		ComPtr<ID3D11Buffer> m_pixelConstantBuffer;
 
 		// ConstantBufferData(Cpp) -> ConstantBuffer(Shader)
 		BasicVertexConstantBuffer m_basicVertexConstantBufferData;

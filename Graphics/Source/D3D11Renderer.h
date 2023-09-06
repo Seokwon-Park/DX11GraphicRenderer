@@ -5,6 +5,7 @@
 #include "D3D11Geometry.h"
 #include "D3D11Math.h"
 #include "D3D11Utilities.h"
+#include "DXRay.h"
 #include "Model.h"
 
 namespace graphics
@@ -27,6 +28,8 @@ namespace graphics
 	protected:
 		Model my_Mesh1;
 		Model my_Mesh2;
+		BoundingSphere m_mainBoundingSphere;
+		Model m_cursorSphere;
 
 		std::vector<std::shared_ptr<D3D11PostProcess>> m_postProcesses;
 
@@ -42,9 +45,9 @@ namespace graphics
 		bool m_usePerspectiveProjection = true;
 		
 		// Transforms
-		XMFLOAT3 m_modelTranslation = XMFLOAT3();
+		XMFLOAT3 m_modelTranslation = XMFLOAT3(0.f, 0.f, 3.f);
 		XMFLOAT3 m_modelRotation = XMFLOAT3();
-		XMFLOAT3 m_modelScaling = XMFLOAT3(.5f,.5f,.5f);
+		XMFLOAT3 m_modelScaling = XMFLOAT3(1.f, 1.f, 1.f);
 
 		//XMFLOAT3 m_viewEyePos= XMFLOAT3(0.0f,0.0f,-2.0f);
 		//XMFLOAT3 m_viewEyeDir= XMFLOAT3(0.0f, 0.0f, 1.0f);
@@ -70,9 +73,13 @@ namespace graphics
 		bool m_drawNormals = false;
 		bool m_dirtyFlag = false;
 
+		//CubeMapping
 		CubeMap m_cubeMap;
+
+		//Picking
 		uint8_t m_pickColor[4] = { 0, };
 
+		//Change
 		int m_dirtyflag = 1; // 처음에 한 번 실행
 		int m_down = 16;
 		int m_repeat = 5;

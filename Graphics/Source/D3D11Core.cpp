@@ -187,9 +187,8 @@ namespace graphics
 
 			m_cursorX = LOWORD(lParam);
 			m_cursorY = HIWORD(lParam);
-
-			if(m_useFPV)
-				OnMouseMove(wParam, LOWORD(lParam), HIWORD(lParam));
+			
+			OnMouseMove(wParam, LOWORD(lParam), HIWORD(lParam));
 			break;
 		case WM_LBUTTONDOWN:
 			std::cout << "WM_LBUTTONUP Left mouse button down\n";
@@ -199,8 +198,13 @@ namespace graphics
 			std::cout << "WM_LBUTTONUP Left mouse button up\n";
 			m_leftButton = false;
 			break;
+		case WM_RBUTTONDOWN:
+			std::cout << "WM_RBUTTONUP Right mouse button\n";
+			m_rightButton = true;
+			break;
 		case WM_RBUTTONUP:
-			// cout << "WM_RBUTTONUP Right mouse button" << endl;
+			std::cout << "WM_RBUTTONUP Right mouse button\n";
+			m_rightButton = false;
 			break;
 		case WM_KEYDOWN:
 			std::cout << "WM_KEYDOWN " << (int)wParam << std::endl;
@@ -233,16 +237,18 @@ namespace graphics
 		// 마우스 커서의 위치를 NDC로 변환
 		// 마우스 커서는 좌측 상단 (0, 0), 우측 하단(width-1, height-1)
 		// NDC는 좌측 하단이 (-1, -1), 우측 상단(1, 1)
-		float x = mouseX * 2.0f / m_screenWidth - 1.0f;
-		float y = -mouseY * 2.0f / m_screenHeight + 1.0f;
+		m_cursorNdcX = mouseX * 2.0f / m_screenWidth - 1.0f;
+		m_cursorNdcY = -mouseY * 2.0f / m_screenHeight + 1.0f;
 
 		// 커서가 화면 밖으로 나갔을 경우 범위 조절
 		// 게임에서는 클램프를 안할 수도 있다.
-		x = std::clamp(x, -1.0f, 1.0f);
-		y = std::clamp(y, -1.0f, 1.0f);
+		m_cursorNdcX = std::clamp(m_cursorNdcX, -1.0f, 1.0f);
+		m_cursorNdcY = std::clamp(m_cursorNdcY, -1.0f, 1.0f);
 
 		// 카메라 시점 회전
-		m_camera.UpdateMouse(x, y);
+		if (m_useFPV) {
+			m_camera.UpdateMouse(m_cursorNdcX, m_cursorNdcY);
+		}
 	}
 
 	bool D3D11Core::InitMainWindow()
@@ -564,8 +570,8 @@ namespace graphics
 			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 			desc.MiscFlags = 0;
 
-			if (FAILED(m_d3dDevice->CreateTexture2D(&desc, nullptr,
-				m_tempTexture.GetAddressOf()))) {
+			if (FAILED(m_d3dDevice->CreateTexture2D(
+				&desc, nullptr,	m_tempTexture.GetAddressOf()))) {
 				std::cout << "Failed()\n";
 			}
 
@@ -630,6 +636,15 @@ namespace graphics
 			m_screenViewport.MaxDepth = 1.0f;
 
 			m_d3dContext->RSSetViewports(1, &m_screenViewport);
+
+			ZeroMemory(&m_screenViewport2, sizeof(D3D11_VIEWPORT));
+			m_screenViewport2.TopLeftX = float(m_guiWidth);
+			m_screenViewport2.TopLeftY = 0;
+			m_screenViewport2.Width = 300;
+			m_screenViewport2.Height = 300;
+			//m_screenViewport.Width = static_cast<float>(m_screenHeight);
+			m_screenViewport2.MinDepth = 0.0f;
+			m_screenViewport2.MaxDepth = 1.0f;
 		}
 	}
 
