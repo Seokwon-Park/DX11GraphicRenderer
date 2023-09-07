@@ -7,6 +7,7 @@
 #include "D3D11Utilities.h"
 #include "DXRay.h"
 #include "Model.h"
+#include "ImGuiWindows.h"
 
 namespace graphics
 {
@@ -24,6 +25,8 @@ namespace graphics
 		virtual void UpdateGUI() override;
 		virtual void Update(float dt) override;
 		virtual void Render() override;
+
+		void EditTransform(D3D11Camera& camera, XMMATRIX& matrix);
 
 	protected:
 		Model my_Mesh1;

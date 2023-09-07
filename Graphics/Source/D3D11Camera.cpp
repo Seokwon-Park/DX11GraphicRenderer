@@ -29,10 +29,14 @@ namespace graphics {
 
         // 이동할 때 기준이 되는 정면/오른쪽 방향 계산
 
+        XMVECTOR rot = XMQuaternionRotationRollPitchYaw(-this->m_pitch,this->m_yaw,0.f);
         //TODO:
+        //XMStoreFloat3(&m_viewDir, XMVector3Transform(
+        //    XMVectorSet(0.0f, 0.0f, 1.0f, 0.f),
+        //    XMMatrixRotationY(this->m_yaw)));
         XMStoreFloat3(&m_viewDir, XMVector3Transform(
             XMVectorSet(0.0f, 0.0f, 1.0f, 0.f),
-            XMMatrixRotationY(this->m_yaw)));
+            XMMatrixRotationQuaternion(rot)));
         
             //*XMMatrixRotationX(this->m_pitch))); // m_yaw만큼 회전); // m_yaw만큼 회전
         XMStoreFloat3(&m_rightDir ,XMVector3Cross(XMLoadFloat3(&m_upDir), XMLoadFloat3(&m_viewDir))); // Cross product 사용
@@ -43,6 +47,7 @@ namespace graphics {
         XMStoreFloat3(&m_position , 
             XMVectorAdd(XMLoadFloat3(&m_position),
             XMVectorScale( XMLoadFloat3(&m_viewDir), m_speed * dt)));
+
     }
 
     void D3D11Camera::MoveRight(float dt) {

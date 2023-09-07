@@ -16,6 +16,7 @@ namespace graphics {
         void MoveRight(float dt);
         void SetAspectRatio(float aspect);
 
+        float m_speed = 1.0f; // 움직이는 속도
     private:
         // 1인칭 시점은 FPS 게임을 떠올리시면 됩니다.
         // 가상 세계에 1인칭 시점 게임 캐릭터가 서있는 상황입니다.
@@ -38,7 +39,7 @@ namespace graphics {
         float m_pitch = 0.0f;
         float m_yaw = 0.0f;
 
-        float m_speed = 1.0f; // 움직이는 속도
+
 
         // Proj Option
         float m_projFovAngleY = 70.0f;

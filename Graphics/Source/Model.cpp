@@ -83,10 +83,10 @@ namespace graphics
 			// 4 * 3 은 POSITION = float[3], 4byte*3 다음 데이터부터 시작
 		};
 
-		D3D11Utilities::CreateVertexShaderAndInputLayout(device, L"BasicVertexShader.hlsl", inputElements, m_colorVertexShader,
+		D3D11Utilities::CreateVertexShaderAndInputLayout(device, L"BasicVS.hlsl", inputElements, m_colorVertexShader,
 			m_colorInputLayout);
 
-		D3D11Utilities::CreatePixelShader(device, L"BasicPixelShader.hlsl", m_colorPixelShader);
+		D3D11Utilities::CreatePixelShader(device, L"BasicPS.hlsl", m_colorPixelShader);
 
 		return true;
 	}

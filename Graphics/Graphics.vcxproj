@@ -146,10 +146,13 @@
     <ClCompile Include="Source\D3D11Core.cpp" />
     <ClCompile Include="Source\D3D11Renderer.cpp" />
     <ClCompile Include="Source\D3D11Geometry.cpp" />
+    <ClCompile Include="Source\ImGuiWindows.cpp" />
     <ClCompile Include="Source\main.cpp" />
     <ClCompile Include="Source\Model.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\BillBoards.h" />
+    <ClInclude Include="Source\ImGuiWindows.h" />
     <ClInclude Include="Source\DXRay.h" />
     <ClInclude Include="Source\D3D11Camera.h" />
     <ClInclude Include="Source\D3D11PostProcess.h" />
@@ -167,13 +170,13 @@
     <ClInclude Include="Source\Model.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BasicPixelShader.hlsl">
+    <FxCompile Include="BasicPS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="BasicVertexShader.hlsl">
+    <FxCompile Include="BasicVS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

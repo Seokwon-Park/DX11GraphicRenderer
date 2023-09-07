@@ -57,6 +57,9 @@
     <ClCompile Include="Source\DXRay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\ImGuiWindows.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\D3D11Renderer.h">
@@ -104,10 +107,16 @@
     <ClInclude Include="Source\DXRay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ImGuiWindows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\BillBoards.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BasicPixelShader.hlsl" />
-    <FxCompile Include="BasicVertexShader.hlsl" />
+    <FxCompile Include="BasicPS.hlsl" />
+    <FxCompile Include="BasicVS.hlsl" />
     <FxCompile Include="NormalPixelShader.hlsl" />
     <FxCompile Include="NormalVertexShader.hlsl" />
     <FxCompile Include="CubePS.hlsl" />

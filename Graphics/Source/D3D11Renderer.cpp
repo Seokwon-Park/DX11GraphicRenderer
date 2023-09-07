@@ -2,93 +2,69 @@
 
 namespace graphics
 {
+	void D3D11Renderer::EditTransform(D3D11Camera& camera, XMMATRIX& matrix)
+	{
+		static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
+		static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
+		if (ImGui::IsKeyPressed(ImGuiKey_Z))
+			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+		if (ImGui::IsKeyPressed(ImGuiKey_R))
+			mCurrentGizmoOperation = ImGuizmo::ROTATE;
+		if (ImGui::IsKeyPressed(ImGuiKey_T)) // r Key
+			mCurrentGizmoOperation = ImGuizmo::SCALE;
+		if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
+			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
+			mCurrentGizmoOperation = ImGuizmo::ROTATE;
+		ImGui::SameLine();
+		if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
+			mCurrentGizmoOperation = ImGuizmo::SCALE;
+		float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+		//ImGuizmo::DecomposeMatrixToComponents(matrix.r->m128_f32, matrixTranslation, matrixRotation, matrixScale);
+		//ImGui::InputFloat3("Tr", matrixTranslation);
+		//ImGui::InputFloat3("Rt", matrixRotation);
+		//ImGui::InputFloat3("Sc", matrixScale);
+		//ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix.r->m128_f32);
+
+
+			if (mCurrentGizmoOperation != ImGuizmo::SCALE)
+			{
+				if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
+					mCurrentGizmoMode = ImGuizmo::LOCAL;
+				ImGui::SameLine();
+				if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
+					mCurrentGizmoMode = ImGuizmo::WORLD;
+			}
+
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+		ImGuizmo::Manipulate(camera.GetViewRow().r->m128_f32, camera.GetProjRow().r->m128_f32, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.r->m128_f32);
+		ImGuizmo::DecomposeMatrixToComponents(matrix.r->m128_f32, matrixTranslation, matrixRotation, matrixScale);
+		//matrixRotation[0] /= 180.f;
+		//matrixRotation[1] /= 180.f;
+		//matrixRotation[2] /= 180.f;
+
+		m_modelTranslation.x = matrixTranslation[0];
+		m_modelTranslation.y = matrixTranslation[1];
+		m_modelTranslation.z = matrixTranslation[2];
+
+		m_modelRotation.x = matrixRotation[0];
+		m_modelRotation.y = matrixRotation[1];
+		m_modelRotation.z = matrixRotation[2];
+
+		m_modelScaling.x = matrixScale[0];
+		m_modelScaling.y = matrixScale[1];
+		m_modelScaling.z = matrixScale[2];
+	}
+
 	namespace
 	{
-		void CreateDockingWindow()
-		{
-			static bool show_app_fullscreen = false;
-			bool* p_open = &show_app_fullscreen;
 
-			static bool opt_fullscreen = true;
-			static bool opt_padding = false;
-			static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 
-			// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-			// because it would be confusing to have two docking targets within each others.
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-			if (opt_fullscreen)
-			{
-				const ImGuiViewport* viewport = ImGui::GetMainViewport();
-				ImGui::SetNextWindowPos(viewport->WorkPos);
-				ImGui::SetNextWindowSize(viewport->WorkSize);
-				ImGui::SetNextWindowViewport(viewport->ID);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-				window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-				window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-			}
-			else
-			{
-				dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-			}
-
-			// When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-			// and handle the pass-thru hole, so we ask Begin() to not render a background.
-			if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-				window_flags |= ImGuiWindowFlags_NoBackground;
-
-			// Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-			// This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-			// all active windows docked into it will lose their parent and become undocked.
-			// We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-			// any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-			if (!opt_padding)
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::Begin("DockSpace Demo", p_open, window_flags);
-			if (!opt_padding)
-				ImGui::PopStyleVar();
-
-			if (opt_fullscreen)
-				ImGui::PopStyleVar(2);
-
-			// Submit the DockSpace
-			ImGuiIO& io = ImGui::GetIO();
-			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-			{
-				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-			}
-
-			if (ImGui::BeginMenuBar())
-			{
-				if (ImGui::BeginMenu("Options"))
-				{
-					// Disabling fullscreen would allow the window to be moved to the front of other windows,
-					// which we can't undo at the moment without finer window depth/z control.
-					ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-					ImGui::MenuItem("Padding", NULL, &opt_padding);
-					ImGui::Separator();
-
-					if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-					if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-					if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-					if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-					if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
-					ImGui::Separator();
-
-					if (ImGui::MenuItem("Close", NULL, false, p_open != NULL))
-						*p_open = false;
-					ImGui::EndMenu();
-				}
-				ImGui::EndMenuBar();
-			}
-
-			ImGui::End();
-		}
-
-		void DrawXMFLOAT3Control(const std::string& label, XMFLOAT3& values,
-			float resetValue = 0.f, float columnWidth = 100.f,
-			float min = -1.f, float max = 1.f)
+		void DrawSingleFloatControl(const std::string& label, float& value,
+			float resetValue = 0.f, float min = -1.f, float max = 1.f,
+			float columnWidth = 100.f)
 		{
 			ImGui::PushID(label.c_str());
 
@@ -97,7 +73,32 @@ namespace graphics
 			ImGui::Text(label.c_str());
 			ImGui::NextColumn();
 
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0,0 });
+			float lineHeight = ImGui::GetFrameHeight();
+			ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ .8f, .1f, .1f, 1.f });
+			if (ImGui::Button("X", buttonSize))
+				value = resetValue;
+			ImGui::PopStyleColor();
+			ImGui::SameLine();
+			ImGui::DragFloat("##X", &value, 0.f, min, max, "%.2f");
+			ImGui::SameLine();
+
+			ImGui::Columns(1);
+
+			ImGui::PopID();
+		}
+
+		void DrawXMFLOAT3Control(const std::string& label, XMFLOAT3& values,
+			float resetValue = 0.f, float min = -1.f, float max = 1.f, 
+			float columnWidth = 100.f )
+		{
+			ImGui::PushID(label.c_str());
+
+			ImGui::Columns(2);
+			ImGui::SetColumnWidth(0, columnWidth);
+			ImGui::Text(label.c_str());
+			ImGui::NextColumn();
+
 
 			float width = ImGui::GetColumnWidth() - columnWidth;
 
@@ -135,7 +136,6 @@ namespace graphics
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
-			ImGui::PopStyleVar();
 
 			ImGui::Columns(1);
 
@@ -162,7 +162,7 @@ namespace graphics
 		m_postProcesses.push_back(blurFilter);
 		for (int down = m_down; down >= 1; down /= 2)
 		{
-			for (int i = 0; i < 20; i++)
+			for (int i = 0; i < m_repeat; i++)
 			{
 				auto& prevResource = m_postProcesses.back()->m_shaderResourceView;
 				m_postProcesses.push_back(std::make_shared<D3D11PostProcess>(
@@ -223,7 +223,7 @@ namespace graphics
 		meshes2.push_back(Geometry::MakeCube(1.f, 1.f, 1.f));
 		meshes2[0].textureFilename = "d:/earth.jpg";
 
-		if (!my_Mesh1.Initialize(m_d3dDevice, meshes))
+		if (!my_Mesh1.Initialize(m_d3dDevice, meshes2))
 			return false;
 
 		my_Mesh1.diffuseSRV = m_cubeMap.diffuseSRV;
@@ -235,8 +235,6 @@ namespace graphics
 			return false;
 
 		{
-
-
 			MeshData sphere = Geometry::MakeSphere(0.05f, 10, 10);
 			m_cursorSphere.Initialize(m_d3dDevice, { sphere });
 			m_cursorSphere.diffuseSRV = m_cubeMap.diffuseSRV;
@@ -322,12 +320,18 @@ namespace graphics
 		}
 
 		static XMVECTOR prevVector = XMVectorZero();
-		XMFLOAT4A q;
-		XMStoreFloat4A(&q, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_modelRotation)));
+		XMFLOAT4 q;
+		XMFLOAT3 radians(
+			XMConvertToRadians(m_modelRotation.x),
+			XMConvertToRadians(m_modelRotation.y),
+			XMConvertToRadians(m_modelRotation.z)
+			);
+		XMStoreFloat4(&q, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_modelRotation)));
 		// 모델의 변환
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
-			XMMatrixRotationQuaternion(XMLoadFloat4A(&q)) *
+			XMMatrixRotationQuaternion(XMLoadFloat4(&q)) *
 			XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
+		EditTransform(m_camera, my_Mesh1.m_basicVertexConstantBufferData.world);
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.world);
 
 		// 역행렬의 전치 행렬
@@ -380,7 +384,7 @@ namespace graphics
 			Ray curRay = Ray(cursorWorldNear, dir);
 			float dist = 0.0f;
 			m_selected = curRay.Intersects(m_mainBoundingSphere, dist);
-			//std::cout << m_selected << std::endl;
+			std::cout << m_selected << std::endl;
 
 			if (m_selected) {
 				XMFLOAT3 pickPoint;
@@ -406,25 +410,25 @@ namespace graphics
 				m_cursorSphere.m_basicPixelConstantBufferData.indexColor = XMFLOAT4(1.f, 0.f, 0.f, 0.f);
 				m_cursorSphere.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 
-				if (m_dragStartFlag || m_rightButton) { // 드래그를 시작하는 경우
-					m_dragStartFlag = false;
+				//if (m_dragStartFlag || m_rightButton) { // 드래그를 시작하는 경우
+				//	m_dragStartFlag = false;
 
-					prevVector = XMLoadFloat3(&pickPoint)- XMLoadFloat3(&m_mainBoundingSphere.Center);
+				//	prevVector = XMLoadFloat3(&pickPoint)- XMLoadFloat3(&m_mainBoundingSphere.Center);
 
-				}
-				else {
-					XMVECTOR currentVector = XMLoadFloat3(&pickPoint) - XMLoadFloat3(&m_mainBoundingSphere.Center);
-					// TODO:
+				//}
+				//else {
+				//	XMVECTOR currentVector = XMLoadFloat3(&pickPoint) - XMLoadFloat3(&m_mainBoundingSphere.Center);
+				//	// TODO:
 
-					// 마우스가 조금이라도 움직였을 경우에만 회전시키기
-					if (XMVectorGetX(XMVector3Length(currentVector - prevVector)) > 1e-3) {
-						XMStoreFloat4A(&q, XMQuaternionDot(prevVector, currentVector));
-						//q = Quaternion::FromToRotation(prevVector, currentVector);
-						// TODO: Quaternion::FromToRotation() 사용
+				//	// 마우스가 조금이라도 움직였을 경우에만 회전시키기
+				//	if (XMVectorGetX(XMVector3Length(currentVector - prevVector)) > 1e-3) {
+				//		XMStoreFloat4A(&q, XMQuaternionDot(prevVector, currentVector));
+				//		//q = Quaternion::FromToRotation(prevVector, currentVector);
+				//		// TODO: Quaternion::FromToRotation() 사용
 
-						prevVector = currentVector;
-					}
-				}
+				//		prevVector = currentVector;
+				//	}
+				//}
 			}
 		}
 
@@ -516,8 +520,14 @@ namespace graphics
 
 	void D3D11Renderer::Render()
 	{
+		//Graphics Pipeline
+		// IA -> VS -> (HS -> TS -> DS) -> GS -> RS -> PS -> OM
 		// IA: Input-Assembler stage
 		// VS: Vertex Shader
+		// HS: Hull Shader
+		// TS: Tessellator 
+		// DS: Domain Shader
+		// GS: Geometry Shader
 		// PS: Pixel Shader
 		// RS: Rasterizer stage
 		// OM: Output-Merger stage
@@ -568,6 +578,7 @@ namespace graphics
 		//	m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		//	m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
 		//}
+
 		my_Mesh1.Render(m_d3dContext);
 		//my_Mesh2.Render(m_d3dContext);
 		if (m_leftButton && m_selected)
@@ -589,9 +600,9 @@ namespace graphics
 			m_indexTexture.Get(), 0,
 			DXGI_FORMAT_R8G8B8A8_UNORM);
 
+
 		//1x1 pixel box
 		D3D11_BOX box;
-
 
 		box.left = std::clamp(m_cursorX, 0, m_screenWidth);
 		box.right = std::clamp(m_cursorX + 1, 0, m_screenWidth);
@@ -616,7 +627,8 @@ namespace graphics
 	void D3D11Renderer::UpdateGUI()
 	{
 		CreateDockingWindow();
-
+		
+		//Scene Control 파트
 		ImGui::Begin("Scene Control");
 		//ImGui::Checkbox("Use Rim", reinterpret_cast<bool*>(&m_basicPixelConstantBufferData.useRim));
 		//ImGui::SliderFloat("Rim Strength",
@@ -635,6 +647,7 @@ namespace graphics
 		ImGui::Checkbox("Use Texture", &my_Mesh1.m_basicPixelConstantBufferData.useTexture);
 		ImGui::Checkbox("usePerspectiveProjection", &m_usePerspectiveProjection);
 		ImGui::Checkbox("drawAsWire", &m_drawAsWire);
+		DrawSingleFloatControl("CameraSpeed", m_camera.m_speed, 1.f, 8.f);
 
 		ImGui::Checkbox("use PostProcess", &m_usePostProcessing);
 		ImGui::SetNextItemOpen(m_usePostProcessing, ImGuiCond_Always);
@@ -647,17 +660,22 @@ namespace graphics
 
 			ImGui::TreePop();
 		}
+		ImGui::End();
 
-
+		ImGui::Begin("Mesh");
+		//Transform 제어
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::TreeNode("Transform")) {
-			DrawXMFLOAT3Control("Translation", m_modelTranslation, 0.f, 100.f, -10.f, 10.f);
-			DrawXMFLOAT3Control("Rotation", m_modelRotation, 0.f, 100.f, -3.14f, 3.14f);
-			DrawXMFLOAT3Control("Scale", m_modelScaling, 1.f);
+			DrawXMFLOAT3Control("Translation", m_modelTranslation, 0.f,  -10.f, 10.f);
+			DrawXMFLOAT3Control("Rotation", m_modelRotation, 0.f,  -180.f, 180.f);
+			DrawXMFLOAT3Control("Scale", m_modelScaling, 1.f,  .01f, 1.f);
 
 			ImGui::TreePop();
 		}
+		ImGui::End();
 
+		//조명 파트
+		ImGui::Begin("Lights");
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::TreeNode("Lights")) {
 
