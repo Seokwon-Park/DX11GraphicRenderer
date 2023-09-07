@@ -383,15 +383,15 @@ namespace graphics
 			//std::cout << m_selected << std::endl;
 
 			if (m_selected) {
-				XMVECTOR pickPoint;
+				XMFLOAT3 pickPoint;
 
 				m_cursorSphere.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
 
 				// 충돌 지점에 작은 구 그리기
-				pickPoint = XMLoadFloat3(&cursorWorldNear) + XMVectorScale(XMLoadFloat3(&dir), dist);
+				XMStoreFloat3(&pickPoint, XMLoadFloat3(&cursorWorldNear) + XMVectorScale(XMLoadFloat3(&dir), dist));
 
 				XMMATRIX modelMat =
-					XMMatrixTranslation(cursorWorldNear.x, cursorWorldNear.y, cursorWorldNear.z); //TODO:
+					XMMatrixTranslation(pickPoint.x, pickPoint.y, pickPoint.z); //TODO:
 
 				XMMATRIX invTransposeRow = modelMat;
 				invTransposeRow *= XMMatrixTranslation(0.f, 0.f, 0.f);
@@ -409,11 +409,11 @@ namespace graphics
 				if (m_dragStartFlag || m_rightButton) { // 드래그를 시작하는 경우
 					m_dragStartFlag = false;
 
-					prevVector = pickPoint - XMLoadFloat3(&m_mainBoundingSphere.Center));
+					prevVector = XMLoadFloat3(&pickPoint)- XMLoadFloat3(&m_mainBoundingSphere.Center);
 
 				}
 				else {
-					XMVECTOR currentVector = pickPoint - XMLoadFloat3(&m_mainBoundingSphere.Center));
+					XMVECTOR currentVector = XMLoadFloat3(&pickPoint) - XMLoadFloat3(&m_mainBoundingSphere.Center);
 					// TODO:
 
 					// 마우스가 조금이라도 움직였을 경우에만 회전시키기
