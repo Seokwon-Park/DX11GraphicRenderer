@@ -9,14 +9,14 @@ namespace graphics {
         
         //XMVECTOR position = XMVectorSet(-this->m_position.x, -this->m_position.y, -this->m_position.z, 1.0f);
 
-
+        ViewRow = XMMatrixTranslation(-this->m_position.x, -this->m_position.y, -this->m_position.z) *
+            XMMatrixRotationY(-this->m_yaw) *
+            XMMatrixRotationX(this->m_pitch);
         // TODO:
         //return XMMatrixTranslation(-this->m_position) *
         //    XMMatrixRotationY(-this->m_yaw) *
         //    XMMatrixRotationX(this->m_pitch);
-        return XMMatrixTranslation(-this->m_position.x, -this->m_position.y, -this->m_position.z) *
-            XMMatrixRotationY(-this->m_yaw) *
-            XMMatrixRotationX(this->m_pitch);
+        return ViewRow;
     }
 
     XMFLOAT3 D3D11Camera::GetEyePos() { return m_position; }

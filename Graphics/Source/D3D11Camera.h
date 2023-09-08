@@ -15,7 +15,7 @@ namespace graphics {
         void MoveForward(float dt);
         void MoveRight(float dt);
         void SetAspectRatio(float aspect);
-
+        XMMATRIX ViewRow = XMMATRIX();
         float m_speed = 1.0f; // 움직이는 속도
     private:
         // 1인칭 시점은 FPS 게임을 떠올리시면 됩니다.
@@ -28,7 +28,7 @@ namespace graphics {
         // m_upDir : 위쪽 방향, 중력의 반대방향이 기본
         // m_rightDir : 오른쪽 방향, eyeDir과 upDir로부터 계산
 
-        XMFLOAT3 m_position = XMFLOAT3(0.0f, 0.4f, 0.0f); // 0.15f는 눈높이 정도
+        XMFLOAT3 m_position = XMFLOAT3(0.0f, 0.0f, 0.0f); // 0.15f는 눈높이 정도
         XMFLOAT3 m_viewDir = XMFLOAT3(0.0f, 0.0f, 1.0f);
         XMFLOAT3 m_upDir = XMFLOAT3(0.0f, 1.0f, 0.0f); // calculate 
         XMFLOAT3 m_rightDir = XMFLOAT3(1.0f, 0.0f, 0.0f);

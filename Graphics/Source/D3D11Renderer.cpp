@@ -4,14 +4,10 @@ namespace graphics
 {
 	void D3D11Renderer::EditTransform(D3D11Camera& camera, XMMATRIX& matrix)
 	{
+		ImGui::Begin("Transform Mode");
 		static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
 		static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
-		if (ImGui::IsKeyPressed(ImGuiKey_Z))
-			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-		if (ImGui::IsKeyPressed(ImGuiKey_R))
-			mCurrentGizmoOperation = ImGuizmo::ROTATE;
-		if (ImGui::IsKeyPressed(ImGuiKey_T)) // r Key
-			mCurrentGizmoOperation = ImGuizmo::SCALE;
+
 		if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
 			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
 		ImGui::SameLine();
@@ -21,41 +17,56 @@ namespace graphics
 		if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
 			mCurrentGizmoOperation = ImGuizmo::SCALE;
 		float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-		//ImGuizmo::DecomposeMatrixToComponents(matrix.r->m128_f32, matrixTranslation, matrixRotation, matrixScale);
-		//ImGui::InputFloat3("Tr", matrixTranslation);
-		//ImGui::InputFloat3("Rt", matrixRotation);
-		//ImGui::InputFloat3("Sc", matrixScale);
-		//ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix.r->m128_f32);
 
+		float a= (float)ImGui::GetWindowWidth();
+		float b= (float)ImGui::GetWindowHeight();
 
-			if (mCurrentGizmoOperation != ImGuizmo::SCALE)
-			{
-				if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
-					mCurrentGizmoMode = ImGuizmo::LOCAL;
-				ImGui::SameLine();
-				if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
-					mCurrentGizmoMode = ImGuizmo::WORLD;
-			}
+		std::cout << "w: " << a << " h: " << b << std::endl;
+
+		int x, y;
+		RECT rect = { NULL };
+		GetWindowRect(m_mainWindow, &rect);
+		x = rect.left;
+		y = rect.top;
+		//std::cout << "x" << x << " y" << y << std::endl;
+		
+		int x2, y2;
+		RECT rect2 = { NULL };
+		GetClientRect(m_mainWindow, &rect2);
+		x2 = rect.bottom- rect.top;
+		y2 = rect2.bottom- rect2.top;
+		//x2 = rect2.top;
+		//y2 = rect2.top;
+		//std::cout << x2 << " " << y2 << std::endl;
+		//std::cout << x2 - y2 << std::endl;
 
 		ImGuiIO& io = ImGui::GetIO();
-		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, m_screenWidth, m_screenHeight);
 		ImGuizmo::Manipulate(camera.GetViewRow().r->m128_f32, camera.GetProjRow().r->m128_f32, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.r->m128_f32);
+		//ImGuizmo::ViewManipulate(camera.GetViewRow().r->m128_f32, 3.0f, ImVec2(200, 100), ImVec2(128, 128), 0x10101010);
+		//보류
 		ImGuizmo::DecomposeMatrixToComponents(matrix.r->m128_f32, matrixTranslation, matrixRotation, matrixScale);
 		//matrixRotation[0] /= 180.f;
 		//matrixRotation[1] /= 180.f;
 		//matrixRotation[2] /= 180.f;
 
-		m_modelTranslation.x = matrixTranslation[0];
-		m_modelTranslation.y = matrixTranslation[1];
-		m_modelTranslation.z = matrixTranslation[2];
+		//std::cout << m_modelRotation.y << "  " << matrixRotation[1] << std::endl;
 
-		m_modelRotation.x = matrixRotation[0];
-		m_modelRotation.y = matrixRotation[1];
-		m_modelRotation.z = matrixRotation[2];
+		if(ImGuizmo::IsUsing())
+		{
+			m_modelTranslation.x = matrixTranslation[0];
+			m_modelTranslation.y = matrixTranslation[1];
+			m_modelTranslation.z = matrixTranslation[2];
 
-		m_modelScaling.x = matrixScale[0];
-		m_modelScaling.y = matrixScale[1];
-		m_modelScaling.z = matrixScale[2];
+			m_modelRotation.x = matrixRotation[0];
+			m_modelRotation.y = matrixRotation[1];
+			m_modelRotation.z = matrixRotation[2];
+
+			m_modelScaling.x = matrixScale[0];
+			m_modelScaling.y = matrixScale[1];
+			m_modelScaling.z = matrixScale[2];
+		}
+		ImGui::End();
 	}
 
 	namespace
@@ -326,10 +337,14 @@ namespace graphics
 			XMConvertToRadians(m_modelRotation.y),
 			XMConvertToRadians(m_modelRotation.z)
 			);
-		XMStoreFloat4(&q, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&m_modelRotation)));
+		XMStoreFloat4(&q, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&radians)));
+
 		// 모델의 변환
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
-			XMMatrixRotationQuaternion(XMLoadFloat4(&q)) *
+			XMMatrixRotationX(radians.x)*
+			XMMatrixRotationY(radians.y)*
+			XMMatrixRotationZ(radians.z)*
+			//XMMatrixRotationQuaternion(XMLoadFloat4(&q)) *
 			XMMatrixTranslation(m_modelTranslation.x, m_modelTranslation.y, m_modelTranslation.z);
 		EditTransform(m_camera, my_Mesh1.m_basicVertexConstantBufferData.world);
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.world);
