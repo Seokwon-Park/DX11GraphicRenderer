@@ -37,9 +37,9 @@ namespace graphics
 
 
 
-		CreateConstantBuffer(device, m_basicVertexConstantBufferData,
+		D3D11Utilities::CreateConstantBuffer(device, m_basicVertexConstantBufferData,
 			m_vertexConstantBuffer);
-		CreateConstantBuffer(device, m_basicPixelConstantBufferData,
+		D3D11Utilities::CreateConstantBuffer(device, m_basicPixelConstantBufferData,
 			m_pixelConstantBuffer);
 		
 		m_basicPixelConstantBufferData.indexColor = XMFLOAT4(1.f, 0.0f, 0.0f, 0.0f);
@@ -47,7 +47,7 @@ namespace graphics
 
 		for (const auto& meshData : meshesData) {
 			auto newMesh = std::make_shared<Mesh>();
-			CreateVertexBuffer(device, meshData.vertices, newMesh->vertexBuffer);
+			D3D11Utilities::CreateVertexBuffer(device, meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
 			D3D11Utilities::CreateIndexBuffer(device, meshData.indices, newMesh->indexBuffer);
 
@@ -92,15 +92,15 @@ namespace graphics
 	}
 	void Model::UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context)
 	{
-		UpdateBuffer(context, m_basicVertexConstantBufferData,
+		D3D11Utilities::UpdateBuffer(context, m_basicVertexConstantBufferData,
 			m_vertexConstantBuffer);
 
-		UpdateBuffer(context, m_basicPixelConstantBufferData,
+		D3D11Utilities::UpdateBuffer(context, m_basicPixelConstantBufferData,
 			m_pixelConstantBuffer);
 
 		// 노멀 벡터 그리기
 		//if (m_drawNormals && m_drawNormalsDirtyFlag) {
-		//	D3D11Utils::UpdateBuffer(device, context, m_normalVertexConstantData,
+		//	D3D11Utils::D3D11Utilities::UpdateBuffer(device, context, m_normalVertexConstantData,
 		//		m_normalVertexConstantBuffer);
 		//	m_drawNormalsDirtyFlag = false;
 		//}
@@ -108,6 +108,9 @@ namespace graphics
 
 	void Model::Render(ComPtr<ID3D11DeviceContext>& context)
 	{
+		context->VSSetShader(m_colorVertexShader.Get(), 0, 0);
+		context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+		context->PSSetShader(m_colorPixelShader.Get(), 0, 0);
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 

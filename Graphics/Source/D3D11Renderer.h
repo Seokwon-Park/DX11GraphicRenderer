@@ -7,6 +7,7 @@
 #include "D3D11Utilities.h"
 #include "DXRay.h"
 #include "Model.h"
+#include "GeometryPipeline.h"
 #include "ImGuiWindows.h"
 
 namespace graphics
@@ -33,6 +34,7 @@ namespace graphics
 		Model my_Mesh2;
 		BoundingSphere m_mainBoundingSphere;
 		Model m_cursorSphere;
+		BillboardPoints m_billboardPoints;
 
 		std::vector<std::shared_ptr<D3D11PostProcess>> m_postProcesses;
 

@@ -21,7 +21,7 @@ namespace graphics {
 
 		this->cubeMesh = std::make_shared<Mesh>();
 
-		CreateConstantBuffer(device, vertexConstantData,
+		D3D11Utilities::CreateConstantBuffer(device, vertexConstantData,
 			cubeMesh->vertexConstantBuffer);
 
 		//MeshData cubeMeshData = Geometry::MakeIcosahedron();
@@ -35,7 +35,7 @@ namespace graphics {
 
 		std::reverse(cubeMeshData.indices.begin(), cubeMeshData.indices.end());
 
-		CreateVertexBuffer(device, cubeMeshData.vertices,
+		D3D11Utilities::CreateVertexBuffer(device, cubeMeshData.vertices,
 			cubeMesh->vertexBuffer);
 		cubeMesh->m_indexCount = UINT(cubeMeshData.indices.size());
 		D3D11Utilities::CreateIndexBuffer(device, cubeMeshData.indices,
@@ -83,7 +83,7 @@ namespace graphics {
 	void CubeMap::UpdateConstantBuffers(ComPtr<ID3D11Device>& device,
 		ComPtr<ID3D11DeviceContext>& context)
 	{
-		UpdateBuffer(context, vertexConstantData,
+		D3D11Utilities::UpdateBuffer(context, vertexConstantData,
 			cubeMesh->vertexConstantBuffer);
 	}
 

@@ -60,6 +60,9 @@
     <ClCompile Include="Source\ImGuiWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\GeometryPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\D3D11Renderer.h">
@@ -110,7 +113,7 @@
     <ClInclude Include="Source\ImGuiWindows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\BillBoards.h">
+    <ClInclude Include="Source\GeometryPipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,6 +128,9 @@
     <FxCompile Include="BlurPS.hlsl" />
     <FxCompile Include="SamplingPS.hlsl" />
     <FxCompile Include="CombinePS.hlsl" />
+    <FxCompile Include="BillBoardVS.hlsl" />
+    <FxCompile Include="BillBoardPS.hlsl" />
+    <FxCompile Include="BillboardGS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Commons.hlsli" />

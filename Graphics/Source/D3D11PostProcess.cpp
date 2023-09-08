@@ -10,7 +10,7 @@ namespace graphics {
 
         m_mesh = std::make_shared<Mesh>();
 
-        CreateVertexBuffer(device, meshData.vertices,
+        D3D11Utilities::CreateVertexBuffer(device, meshData.vertices,
             m_mesh->vertexBuffer);
         m_mesh->m_indexCount = UINT(meshData.indices.size());
         D3D11Utilities::CreateIndexBuffer(device, meshData.indices,
@@ -97,7 +97,7 @@ namespace graphics {
         m_pixelConstData.dx = 1.0f / width;
         m_pixelConstData.dy = 1.0f / height;
 
-        CreateConstantBuffer(device, m_pixelConstData,
+        D3D11Utilities::CreateConstantBuffer(device, m_pixelConstData,
             m_mesh->pixelConstantBuffer);
 
         // ±‚∫ª ∑ª¥ı≈∏∞Ÿ
@@ -139,7 +139,7 @@ namespace graphics {
     void D3D11PostProcess::UpdateConstantBuffers(ComPtr<ID3D11Device>& device,
         ComPtr<ID3D11DeviceContext>& context) {
 
-        UpdateBuffer(context, m_pixelConstData,
+        D3D11Utilities::UpdateBuffer(context, m_pixelConstData,
             m_mesh->pixelConstantBuffer);
     }
 

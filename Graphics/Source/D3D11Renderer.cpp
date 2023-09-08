@@ -5,7 +5,8 @@ namespace graphics
 	void D3D11Renderer::EditTransform(D3D11Camera& camera, XMMATRIX& matrix)
 	{
 		ImGui::Begin("Transform Mode");
-		static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
+	
+		static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
 		static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::WORLD);
 
 		if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
@@ -18,30 +19,8 @@ namespace graphics
 			mCurrentGizmoOperation = ImGuizmo::SCALE;
 		float matrixTranslation[3], matrixRotation[3], matrixScale[3];
 
-		float a= (float)ImGui::GetWindowWidth();
-		float b= (float)ImGui::GetWindowHeight();
-
-		std::cout << "w: " << a << " h: " << b << std::endl;
-
-		int x, y;
-		RECT rect = { NULL };
-		GetWindowRect(m_mainWindow, &rect);
-		x = rect.left;
-		y = rect.top;
-		//std::cout << "x" << x << " y" << y << std::endl;
-		
-		int x2, y2;
-		RECT rect2 = { NULL };
-		GetClientRect(m_mainWindow, &rect2);
-		x2 = rect.bottom- rect.top;
-		y2 = rect2.bottom- rect2.top;
-		//x2 = rect2.top;
-		//y2 = rect2.top;
-		//std::cout << x2 << " " << y2 << std::endl;
-		//std::cout << x2 - y2 << std::endl;
-
 		ImGuiIO& io = ImGui::GetIO();
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, m_screenWidth, m_screenHeight);
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, (float)m_screenWidth, (float)m_screenHeight);
 		ImGuizmo::Manipulate(camera.GetViewRow().r->m128_f32, camera.GetProjRow().r->m128_f32, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.r->m128_f32);
 		//ImGuizmo::ViewManipulate(camera.GetViewRow().r->m128_f32, 3.0f, ImVec2(200, 100), ImVec2(128, 128), 0x10101010);
 		//보류
@@ -49,6 +28,15 @@ namespace graphics
 		//matrixRotation[0] /= 180.f;
 		//matrixRotation[1] /= 180.f;
 		//matrixRotation[2] /= 180.f;
+		ImGui::SameLine();
+		if (mCurrentGizmoOperation != ImGuizmo::SCALE)
+		{
+			if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
+				mCurrentGizmoMode = ImGuizmo::LOCAL;
+			ImGui::SameLine();
+			if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
+				mCurrentGizmoMode = ImGuizmo::WORLD;
+		}
 
 		//std::cout << m_modelRotation.y << "  " << matrixRotation[1] << std::endl;
 
@@ -71,7 +59,26 @@ namespace graphics
 
 	namespace
 	{
+		void ToggleButton(const char* str_id, bool* v)
+		{
+			ImVec2 p = ImGui::GetCursorScreenPos();
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+			float height = ImGui::GetFrameHeight();
+			float width = height * 1.55f;
+			float radius = height * 0.50f;
+
+			if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))
+				*v = !*v;
+			ImU32 col_bg;
+			if (ImGui::IsItemHovered())
+				col_bg = *v ? IM_COL32(145 + 20, 211, 68 + 20, 255) : IM_COL32(218 - 20, 218 - 20, 218 - 20, 255);
+			else
+				col_bg = *v ? IM_COL32(145, 211, 68, 255) : IM_COL32(218, 218, 218, 255);
+
+			draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
+			draw_list->AddCircleFilled(ImVec2(*v ? (p.x + width - radius) : (p.x + radius), p.y + radius), radius - 1.5f, IM_COL32(255, 255, 255, 255));
+		}
 
 		void DrawSingleFloatControl(const std::string& label, float& value,
 			float resetValue = 0.f, float min = -1.f, float max = 1.f,
@@ -86,12 +93,12 @@ namespace graphics
 
 			float lineHeight = ImGui::GetFrameHeight();
 			ImVec2 buttonSize = { lineHeight + 3.f, lineHeight };
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ .8f, .1f, .1f, 1.f });
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ .1f, .1f, .1f, 1.f });
 			if (ImGui::Button("X", buttonSize))
 				value = resetValue;
 			ImGui::PopStyleColor();
 			ImGui::SameLine();
-			ImGui::DragFloat("##X", &value, 0.f, min, max, "%.2f");
+			ImGui::DragFloat("##X", &value, 1.f, min, max, "%.2f");
 			ImGui::SameLine();
 
 			ImGui::Columns(1);
@@ -214,6 +221,13 @@ namespace graphics
 		if (!D3D11Core::Initialize())
 			return false;
 
+		// 포인트로 빌보드 만들기
+		m_billboardPoints.Initialize(m_d3dDevice, { {-0.5f, 0.3f, 3.0f, 1.0f},
+												{-0.25f, 0.3f, 3.0f, 1.0f},
+												{0.0f, 0.3f, 3.0f, 1.0f},
+												{0.25f, 0.3f, 3.0f, 1.0f},
+												{0.5f, 0.3f, 3.0f, 1.0f} });
+
 		if (!m_cubeMap.Initialize(
 			m_d3dDevice,
 			L"d:/Atrium_diffuseIBL.dds",
@@ -294,10 +308,10 @@ namespace graphics
 		//	offset += meshData.vertices.size();
 		//}
 
-		//CreateVertexBuffer(m_d3dDevice, normalVertices, m_normalLines->vertexBuffer);
+		//D3D11Utilities::CreateVertexBuffer(m_d3dDevice, normalVertices, m_normalLines->vertexBuffer);
 		//m_normalLines->m_indexCount = UINT(normalIndices.size());
 		//D3D11Utilities::CreateIndexBuffer(m_d3dDevice, normalIndices, m_normalLines->indexBuffer);
-		//CreateConstantBuffer(m_d3dDevice, m_normalVertexConstantBufferData,
+		//D3D11Utilities::CreateConstantBuffer(m_d3dDevice, m_normalVertexConstantBufferData,
 		//	m_normalLines->vertexConstantBuffer);
 
 		//D3D11Utilities::CreateVertexShaderAndInputLayout(m_d3dDevice,
@@ -363,6 +377,10 @@ namespace graphics
 		my_Mesh1.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
 		my_Mesh1.m_basicVertexConstantBufferData.view = XMMatrixTranspose(viewRow);
 		my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(projRow);
+
+		m_billboardPoints.m_constantData.eyeWorld = eyeWorld;
+		m_billboardPoints.m_constantData.view = XMMatrixTranspose(viewRow);
+		m_billboardPoints.m_constantData.proj = XMMatrixTranspose(projRow);
 
 
 
@@ -474,8 +492,10 @@ namespace graphics
 			//my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.projection);
 
 			// Constant를 CPU에서 GPU로 복사
-		UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
-		UpdateBuffer(m_d3dContext, my_Mesh2.m_basicVertexConstantBufferData, my_Mesh2.meshes[0]->vertexConstantBuffer);
+		D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
+		D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh2.m_basicVertexConstantBufferData, my_Mesh2.meshes[0]->vertexConstantBuffer);
+		D3D11Utilities::UpdateBuffer(m_d3dContext, m_billboardPoints.m_constantData,
+			m_billboardPoints.m_constantBuffer);
 
 		// light별 fallofEnd fallofStart값을 변경하지 않기 위해 복사해서 사용
 		auto basicPixelData{ my_Mesh1.m_basicPixelConstantBufferData };
@@ -493,14 +513,14 @@ namespace graphics
 			}
 		}
 
-		UpdateBuffer(m_d3dContext, basicPixelData,
+		D3D11Utilities::UpdateBuffer(m_d3dContext, basicPixelData,
 			my_Mesh1.meshes[0]->pixelConstantBuffer);
-		UpdateBuffer(m_d3dContext, basicPixelData,
+		D3D11Utilities::UpdateBuffer(m_d3dContext, basicPixelData,
 			my_Mesh2.meshes[0]->pixelConstantBuffer);
 		//// 노멀 벡터 그리기
 		//if (m_drawNormals && m_dirtyFlag) {
 
-		//	UpdateBuffer(m_d3dContext, m_normalVertexConstantBufferData,
+		//	D3D11Utilities::UpdateBuffer(m_d3dContext, m_normalVertexConstantBufferData,
 		//		m_normalLines->vertexConstantBuffer);
 
 		//	m_dirtyFlag = false;
@@ -513,7 +533,7 @@ namespace graphics
 		m_cubeMap.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 
 		// Mesh의 MVP를 큐브맵의 vertexConstants로 전달
-		UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData,
+		D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData,
 			m_cubeMap.cubeMesh->vertexConstantBuffer);
 
 		my_Mesh1.m_basicPixelConstantBufferData.material.diffuse =
@@ -593,6 +613,8 @@ namespace graphics
 		//	m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		//	m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
 		//}
+		m_billboardPoints.Render(m_d3dContext);
+
 
 		my_Mesh1.Render(m_d3dContext);
 		//my_Mesh2.Render(m_d3dContext);
@@ -655,14 +677,14 @@ namespace graphics
 		//	0.0f, 1.0f);
 		//ImGui::SliderFloat("Rim Power", &m_basicPixelConstantBufferData.rimPower,
 		//	0.01f, 10.0f);
-
+		// ToggleButton("Toggle Test", &m_usePostProcessing);
 		// ImGui가 측정해주는 Framerate 출력
 		ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		ImGui::Checkbox("Use Texture", &my_Mesh1.m_basicPixelConstantBufferData.useTexture);
 		ImGui::Checkbox("usePerspectiveProjection", &m_usePerspectiveProjection);
 		ImGui::Checkbox("drawAsWire", &m_drawAsWire);
-		DrawSingleFloatControl("CameraSpeed", m_camera.m_speed, 1.f, 8.f);
+		DrawSingleFloatControl("CameraSpeed", m_camera.m_speed, 1.f, 1.f, 8.f);
 
 		ImGui::Checkbox("use PostProcess", &m_usePostProcessing);
 		ImGui::SetNextItemOpen(m_usePostProcessing, ImGuiCond_Always);

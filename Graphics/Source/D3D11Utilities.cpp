@@ -20,7 +20,7 @@ namespace graphics
 				}
 			}
 		}
-	}
+	} // anonymous namespace
 
 	void D3D11Utilities::CreateIndexBuffer(
 		ComPtr<ID3D11Device>& device, 
@@ -48,7 +48,8 @@ namespace graphics
 		const std::wstring& filename,
 		const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
 		ComPtr<ID3D11VertexShader>& vertexShader,
-		ComPtr<ID3D11InputLayout>& inputLayout) {
+		ComPtr<ID3D11InputLayout>& inputLayout) 
+	{
 
 		ComPtr<ID3DBlob> shaderBlob;
 		ComPtr<ID3DBlob> errorBlob;
@@ -82,6 +83,33 @@ namespace graphics
 		ThrowIfFailed(device->CreateInputLayout(inputElements.data(), UINT(inputElements.size()),
 			shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(),
 			&inputLayout));
+	}
+
+	void D3D11Utilities::CreateGeometryShader(
+		ComPtr<ID3D11Device>& device, 
+		const std::wstring& filename,
+		ComPtr<ID3D11GeometryShader>& geometryShader) 
+	{
+
+		ComPtr<ID3DBlob> shaderBlob;
+		ComPtr<ID3DBlob> errorBlob;
+
+		UINT compileFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+		compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+		// 쉐이더의 시작점의 이름이 "main"인 함수로 지정
+		// D3D_COMPILE_STANDARD_FILE_INCLUDE 추가: 쉐이더에서 include 사용
+		HRESULT hr = D3DCompileFromFile(
+			filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main",
+			"gs_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
+
+		// CheckResult(hr, errorBlob.Get());
+
+		device->CreateGeometryShader(shaderBlob->GetBufferPointer(),
+			shaderBlob->GetBufferSize(), NULL,
+			&geometryShader);
 	}
 
 	void D3D11Utilities::CreatePixelShader(
@@ -162,5 +190,56 @@ namespace graphics
 			textureResourceView.GetAddressOf());
 	}
 
+	void D3D11Utilities::CreateTextureArray(
+		ComPtr<ID3D11Device> device,
+		const std::vector<std::string> filenames,
+		ComPtr<ID3D11Texture2D>& texture,
+		ComPtr<ID3D11ShaderResourceView>& textureResourceView)
+	{
+		int width, height, channels;
 
+		std::vector<uint8_t> imageArray;
+		unsigned char* img = nullptr;
+
+		for(auto filename:filenames)
+		img =
+			stbi_load(filename.c_str(), &width, &height, &channels, 0);
+
+		//assert(channels == 4);
+
+
+		// 4채널로 만들어서 복사
+		imageArray.resize(width * height * 4);
+		for (size_t i = 0; i < width * height; i++) {
+			for (size_t c = 0; c < 3; c++) {
+				imageArray[4 * i + c] = img[i * channels + c];
+			}
+			imageArray[4 * i + 3] = 255;
+		}
+
+		// Create texture.
+		D3D11_TEXTURE2D_DESC txtDesc = {};
+		txtDesc.Width = width;
+		txtDesc.Height = height;
+		txtDesc.MipLevels = txtDesc.ArraySize = 1;
+		txtDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		txtDesc.SampleDesc.Count = 1;
+		txtDesc.Usage = D3D11_USAGE_IMMUTABLE;
+		txtDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		// Fill in the subresource data.
+		std::vector<D3D11_SUBRESOURCE_DATA> initData(filenames.size());
+		size_t offset = 0;
+		for (auto& i : initData) {
+			i.pSysMem = imageArray.data() + offset;
+			i.SysMemPitch = txtDesc.Width * sizeof(uint8_t) * 4;
+			i.SysMemSlicePitch =
+				txtDesc.Width * txtDesc.Height * sizeof(uint8_t) * 4;
+			offset += i.SysMemSlicePitch;
+		}
+
+		device->CreateTexture2D(&txtDesc, initData.data(), texture.GetAddressOf());
+		device->CreateShaderResourceView(texture.Get(), nullptr,
+			textureResourceView.GetAddressOf());
+	}
 }
