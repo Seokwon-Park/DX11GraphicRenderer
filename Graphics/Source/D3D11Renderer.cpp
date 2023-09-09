@@ -230,8 +230,8 @@ namespace graphics
 
 		if (!m_cubeMap.Initialize(
 			m_d3dDevice,
-			L"d:/Atrium_diffuseIBL.dds",
-			L"d:/Atrium_specularIBL.dds"))
+			L"../Graphics/DGarden_diffuseIBL.dds",
+			L"../Graphics/DGarden_specularIBL.dds"))
 			return false;
 
 		//if (!my_Mesh1.Initialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
@@ -242,11 +242,11 @@ namespace graphics
 
 		std::vector<MeshData> meshes;
 		meshes.push_back(Geometry::MakeSphere(1.f, 20, 20));
-		meshes[0].textureFilename = "d:/earth.jpg";
+		//meshes[0].textureFilename = "d:/earth.jpg";
 
 		std::vector<MeshData> meshes2;
 		meshes2.push_back(Geometry::MakeCube(1.f, 1.f, 1.f));
-		meshes2[0].textureFilename = "d:/earth.jpg";
+		//meshes2[0].textureFilename = "d:/earth.jpg";
 
 		if (!my_Mesh1.Initialize(m_d3dDevice, meshes2))
 			return false;
