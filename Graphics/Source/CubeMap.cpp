@@ -16,8 +16,8 @@ namespace graphics {
 		// .dds 파일 읽어들여서 초기화
 		ComPtr<ID3D11Texture2D> texture;
 
-		D3D11Core::CreateDDSTexture(device, diffuseDDS, diffuseSRV);
-		D3D11Core::CreateDDSTexture(device, specularDDS, specularSRV);
+		D3D11Utilities::CreateDDSTexture(device, diffuseDDS, diffuseSRV);
+		D3D11Utilities::CreateDDSTexture(device, specularDDS, specularSRV);
 
 		this->cubeMesh = std::make_shared<Mesh>();
 

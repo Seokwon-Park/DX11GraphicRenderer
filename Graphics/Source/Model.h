@@ -18,25 +18,37 @@ namespace graphics
 		void UpdateConstantBuffers(ComPtr<ID3D11Device>& device, ComPtr<ID3D11DeviceContext>& context);
 		void Render(ComPtr<ID3D11DeviceContext>& context);
 
-		std::vector<std::shared_ptr<Mesh>> meshes;
-
-		//Shaders
-		//Basic
-		ComPtr<ID3D11VertexShader> m_colorVertexShader;
-		ComPtr<ID3D11InputLayout> m_colorInputLayout;
-		ComPtr<ID3D11PixelShader> m_colorPixelShader;
-
-		ComPtr<ID3D11ShaderResourceView> diffuseSRV;
-		ComPtr<ID3D11ShaderResourceView> specularSRV;			
-
-		ComPtr<ID3D11Buffer> m_vertexConstantBuffer;
-		ComPtr<ID3D11Buffer> m_pixelConstantBuffer;
-
 		// ConstantBufferData(Cpp) -> ConstantBuffer(Shader)
 		BasicVertexConstantBuffer m_basicVertexConstantBufferData;
 		BasicPixelConstantBuffer m_basicPixelConstantBufferData;
 
+		ComPtr<ID3D11ShaderResourceView> diffuseSRV;
+		ComPtr<ID3D11ShaderResourceView> specularSRV;
+
+		bool m_drawNormalsDirtyFlag = false;
+		bool m_drawNormals = false;
+
+
+		std::vector<std::shared_ptr<Mesh>> meshes;
+
+		//Shaders
+		//Basic
+		ComPtr<ID3D11VertexShader> m_basicVS;
+		ComPtr<ID3D11InputLayout> m_basicInputLayout;
+		ComPtr<ID3D11PixelShader> m_basicPS;
+
+		ComPtr<ID3D11VertexShader> m_normalVS;
+		ComPtr<ID3D11PixelShader> m_normalPS;
+		ComPtr<ID3D11GeometryShader> m_normalGS;
+	
+		ComPtr<ID3D11Buffer> m_vertexConstantBuffer;
+		ComPtr<ID3D11Buffer> m_pixelConstantBuffer;
+
+		ComPtr<ID3D11Buffer> m_normalVertexConstantBuffer;
+
 		ComPtr<ID3D11SamplerState> m_samplerState;
+
+
 	};
 
 

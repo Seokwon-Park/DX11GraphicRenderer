@@ -1,6 +1,5 @@
 #include "D3D11Core.h"
 
-#include <directxtk/DDSTextureLoader.h>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -435,6 +434,7 @@ namespace graphics
 
 		return true;
 	}
+
 	bool D3D11Core::InitGUI()
 	{
 		IMGUI_CHECKVERSION();
@@ -452,10 +452,6 @@ namespace graphics
 		auto& style = ImGui::GetStyle();
 		SetType1(colors, style);
 		
-
-
-
-
 
 		if (!ImGui_ImplWin32_Init(m_mainWindow)) {
 			return false;
@@ -701,19 +697,5 @@ namespace graphics
 			std::cout << "CreateDepthStencilView() failed.\n";
 		}
 		return true;
-	}
-
-	void D3D11Core::CreateDDSTexture(
-		ComPtr<ID3D11Device>& device,
-		const wchar_t* filename,
-		ComPtr<ID3D11ShaderResourceView>& srv)
-	{
-		ComPtr<ID3D11Texture2D> texture;
-
-		ThrowIfFailed(CreateDDSTextureFromFileEx(
-			device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
-			D3D11_BIND_SHADER_RESOURCE, 0, D3D11_RESOURCE_MISC_TEXTURECUBE, DDS_LOADER_FLAGS(false),
-			(ID3D11Resource**)texture.GetAddressOf(),
-			srv.GetAddressOf(), nullptr));
 	}
 }

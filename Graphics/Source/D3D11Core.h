@@ -38,11 +38,6 @@ namespace graphics
 		virtual void OnMouseUp(WPARAM btnState, int x, int y) {};
 		virtual void OnMouseMove(WPARAM btnState, int x, int y);
 
-		static void CreateDDSTexture(
-			ComPtr<ID3D11Device>& device,
-			const wchar_t* filename,
-			ComPtr<ID3D11ShaderResourceView>& srv);
-
 	// 상속받은 클래스에서도 접근이 가능한 함수들 = protected
 	protected: 
 		// Initialize Rendering Base

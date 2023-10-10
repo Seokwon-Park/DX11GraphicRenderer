@@ -36,7 +36,6 @@ namespace graphics
 		m_basicVertexConstantBufferData.projection = XMMatrixIdentity();
 
 
-
 		D3D11Utilities::CreateConstantBuffer(device, m_basicVertexConstantBufferData,
 			m_vertexConstantBuffer);
 		D3D11Utilities::CreateConstantBuffer(device, m_basicPixelConstantBufferData,
@@ -49,6 +48,7 @@ namespace graphics
 			auto newMesh = std::make_shared<Mesh>();
 			D3D11Utilities::CreateVertexBuffer(device, meshData.vertices, newMesh->vertexBuffer);
 			newMesh->m_indexCount = UINT(meshData.indices.size());
+			newMesh->m_vertexCount = UINT(meshData.vertices.size());
 			D3D11Utilities::CreateIndexBuffer(device, meshData.indices, newMesh->indexBuffer);
 
 			if (!meshData.textureFilename.empty()) {
@@ -61,7 +61,7 @@ namespace graphics
 			newMesh->vertexConstantBuffer = m_vertexConstantBuffer;
 			newMesh->pixelConstantBuffer = m_pixelConstantBuffer;
 
-			meshes.push_back(newMesh);
+			this->meshes.push_back(newMesh);
 		}
 		
 		// 쉐이더 만들기
@@ -83,10 +83,15 @@ namespace graphics
 			// 4 * 3 은 POSITION = float[3], 4byte*3 다음 데이터부터 시작
 		};
 
-		D3D11Utilities::CreateVertexShaderAndInputLayout(device, L"BasicVS.hlsl", inputElements, m_colorVertexShader,
-			m_colorInputLayout);
+		D3D11Utilities::CreateVertexShaderAndInputLayout(device, L"BasicVS.hlsl", inputElements, m_basicVS,
+			m_basicInputLayout);
+				
+		D3D11Utilities::CreatePixelShader(device, L"BasicPS.hlsl", m_basicPS);
 
-		D3D11Utilities::CreatePixelShader(device, L"BasicPS.hlsl", m_colorPixelShader);
+		D3D11Utilities::CreateVertexShaderAndInputLayout(device, L"NormalVS.hlsl", inputElements, m_normalVS,
+			m_basicInputLayout);
+		D3D11Utilities::CreateGeometryShader(device, L"NormalGS.hlsl", m_normalGS);
+		D3D11Utilities::CreatePixelShader(device, L"NormalPS.hlsl", m_normalPS);
 
 		return true;
 	}
@@ -98,26 +103,28 @@ namespace graphics
 		D3D11Utilities::UpdateBuffer(context, m_basicPixelConstantBufferData,
 			m_pixelConstantBuffer);
 
-		// 노멀 벡터 그리기
+		//// 노멀 벡터 그리기
 		//if (m_drawNormals && m_drawNormalsDirtyFlag) {
-		//	D3D11Utils::D3D11Utilities::UpdateBuffer(device, context, m_normalVertexConstantData,
-		//		m_normalVertexConstantBuffer);
+		//	//D3D11Utilities::UpdateBuffer(context, m_normalVertexConstantData,
+		//	//	m_normalVertexConstantBuffer);
 		//	m_drawNormalsDirtyFlag = false;
 		//}
 	}
 
 	void Model::Render(ComPtr<ID3D11DeviceContext>& context)
 	{
-		context->VSSetShader(m_colorVertexShader.Get(), 0, 0);
-		context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-		context->PSSetShader(m_colorPixelShader.Get(), 0, 0);
+
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
 		// 버텍스/인덱스 버퍼 설정
 		for (const auto& mesh : meshes) {
+
 			context->VSSetConstantBuffers(
 				0, 1, mesh->vertexConstantBuffer.GetAddressOf());
+			context->VSSetShader(m_basicVS.Get(), 0, 0);
+			context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+			context->PSSetShader(m_basicPS.Get(), 0, 0);
 
 			ID3D11ShaderResourceView* srv[3] = {
 				mesh->textureResourceView.Get(),
@@ -131,14 +138,27 @@ namespace graphics
 			context->PSSetConstantBuffers(
 				0, 1, mesh->pixelConstantBuffer.GetAddressOf());
 
-			context->IASetInputLayout(m_colorInputLayout.Get());
+			context->IASetInputLayout(m_basicInputLayout.Get());
 			context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
 				&stride, &offset);
-			context->IASetIndexBuffer(mesh->indexBuffer.Get(),
-				DXGI_FORMAT_R32_UINT, 0);
-			context->IASetPrimitiveTopology(
-				D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			context->IASetIndexBuffer(mesh->indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			context->DrawIndexed(mesh->m_indexCount, 0, 0);
+			
+			if(m_drawNormals)
+			{
+				context->VSSetShader(m_normalVS.Get(), 0, 0);
+
+				ID3D11Buffer* pptr[1] = { m_vertexConstantBuffer.Get() };
+
+				context->GSSetConstantBuffers(0, 1, pptr);
+				context->GSSetShader(m_normalGS.Get(), 0, 0);
+				context->PSSetShader(m_normalPS.Get(), 0, 0);
+				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+				context->Draw(mesh->m_vertexCount, 0);
+				context->GSSetShader(nullptr, 0, 0);
+
+			}
 		}
 	}
 }

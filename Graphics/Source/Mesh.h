@@ -32,5 +32,6 @@ namespace graphics
         ComPtr<ID3D11ShaderResourceView> textureResourceView;
 
         UINT m_indexCount = 0;
+        UINT m_vertexCount = 0;
     };
 }

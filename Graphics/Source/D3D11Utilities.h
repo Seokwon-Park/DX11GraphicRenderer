@@ -122,5 +122,10 @@ namespace graphics
 			const std::vector<std::string> filenames,
 			ComPtr<ID3D11Texture2D>& texture,
 			ComPtr<ID3D11ShaderResourceView>& textureResourceView);
+
+		static void CreateDDSTexture(
+			ComPtr<ID3D11Device>& device,
+			const wchar_t* filename,
+			ComPtr<ID3D11ShaderResourceView>& srv);
 	};
 }

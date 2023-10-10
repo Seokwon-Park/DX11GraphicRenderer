@@ -19,6 +19,7 @@ namespace graphics {
         return ViewRow;
     }
 
+
     XMFLOAT3 D3D11Camera::GetEyePos() { return m_position; }
 
     void D3D11Camera::UpdateMouse(float mouseNdcX, float mouseNdcY) {

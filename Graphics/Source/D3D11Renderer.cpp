@@ -222,11 +222,11 @@ namespace graphics
 			return false;
 
 		// 포인트로 빌보드 만들기
-		m_billboardPoints.Initialize(m_d3dDevice, { {-0.5f, 0.3f, 3.0f, 1.0f},
-												{-0.25f, 0.3f, 3.0f, 1.0f},
-												{0.0f, 0.3f, 3.0f, 1.0f},
-												{0.25f, 0.3f, 3.0f, 1.0f},
-												{0.5f, 0.3f, 3.0f, 1.0f} });
+		m_billboardPoints.Initialize(m_d3dDevice, { {-1.5f, 1.0f, 2.0f, 1.0f},
+												{-.75f, 1.0f, 2.0f, 1.0f},
+												{0.0f, 1.0f, 2.0f, 1.0f},
+												{0.75f, 1.0f, 2.0f, 1.0f},
+												{1.5f, 1.0f, 2.0f, 1.0f} });
 
 		if (!m_cubeMap.Initialize(
 			m_d3dDevice,
@@ -236,28 +236,27 @@ namespace graphics
 
 		//if (!my_Mesh1.Initialize(m_d3dDevice, "c:/zelda/zeldaPosed001.fbx"))
 		//	return false;
-
-		XMFLOAT3 center(0.0f, 0.0f, 3.0f);
-		float radius = 1.0f;
+		{
+			XMFLOAT3 center(0.0f, 0.0f, 3.0f);
+			float radius = 1.0f;
 
 		std::vector<MeshData> meshes;
 		meshes.push_back(Geometry::MakeSphere(1.f, 20, 20));
-		//meshes[0].textureFilename = "d:/earth.jpg";
+		meshes[0].textureFilename = "d:/earth.jpg";
 
 		std::vector<MeshData> meshes2;
 		meshes2.push_back(Geometry::MakeCube(1.f, 1.f, 1.f));
-		//meshes2[0].textureFilename = "d:/earth.jpg";
+		meshes2[0].textureFilename = "d:/earth.jpg";
 
-		if (!my_Mesh1.Initialize(m_d3dDevice, meshes2))
-			return false;
+			if (!my_Mesh1.Initialize(m_d3dDevice, meshes))
+				return false;
 
-		my_Mesh1.diffuseSRV = m_cubeMap.diffuseSRV;
-		my_Mesh1.specularSRV = m_cubeMap.specularSRV;
-
-		m_mainBoundingSphere = BoundingSphere(center, radius);
-
-		if (!my_Mesh2.Initialize(m_d3dDevice, meshes2))
-			return false;
+			my_Mesh1.diffuseSRV = m_cubeMap.diffuseSRV;
+			my_Mesh1.specularSRV = m_cubeMap.specularSRV;
+			m_mainBoundingSphere = BoundingSphere(center, radius);
+			if (!my_Mesh2.Initialize(m_d3dDevice, meshes2))
+				return false;
+		}
 
 		{
 			MeshData sphere = Geometry::MakeSphere(0.05f, 10, 10);
@@ -282,6 +281,17 @@ namespace graphics
 
 			// 동일한 크기와 위치에 BoundingSphere 만들기
 
+		}
+
+		{
+			MeshData ground = Geometry::MakePlane(3.f, Axis::x, Axis::z);
+			ground.textureFilename = "../Assets/Textures/blender_uv_grid_2k.png";
+			m_Ground.Initialize(m_d3dDevice, { ground });
+			m_Ground.diffuseSRV = m_cubeMap.diffuseSRV;
+			m_Ground.specularSRV= m_cubeMap.specularSRV;
+			m_Ground.m_basicPixelConstantBufferData.useTexture = false;
+			m_Ground.m_basicPixelConstantBufferData.material.diffuse = CreateXMFLOAT3(1.0f);
+			m_Ground.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 		}
 		//// 노멀 벡터 그리기
 		//// 문제를 단순화하기 위해 InputLayout은 BasicVertexShader와 같이 사용합시다.
@@ -316,7 +326,7 @@ namespace graphics
 
 		//D3D11Utilities::CreateVertexShaderAndInputLayout(m_d3dDevice,
 		//	L"NormalVertexShader.hlsl", inputElements, m_normalVertexShader,
-		//	m_colorInputLayout);
+		//	m_basicInputLayout);
 		//D3D11Utilities::CreatePixelShader(m_d3dDevice, L"NormalPixelShader.hlsl", m_normalPixelShader);
 		CreateBloom();
 
@@ -345,13 +355,13 @@ namespace graphics
 		}
 
 		static XMVECTOR prevVector = XMVectorZero();
-		XMFLOAT4 q;
+		//XMFLOAT4 q; //Quaternion 사용 시 ImGuizmo Rotation과 충돌
 		XMFLOAT3 radians(
 			XMConvertToRadians(m_modelRotation.x),
 			XMConvertToRadians(m_modelRotation.y),
 			XMConvertToRadians(m_modelRotation.z)
 			);
-		XMStoreFloat4(&q, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&radians)));
+		//XMStoreFloat4(&q, XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&radians)));
 
 		// 모델의 변환
 		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixScaling(m_modelScaling.x, m_modelScaling.y, m_modelScaling.z) *
@@ -377,10 +387,19 @@ namespace graphics
 		my_Mesh1.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
 		my_Mesh1.m_basicVertexConstantBufferData.view = XMMatrixTranspose(viewRow);
 		my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(projRow);
+		
+		my_Mesh1.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+
 
 		m_billboardPoints.m_constantData.eyeWorld = eyeWorld;
 		m_billboardPoints.m_constantData.view = XMMatrixTranspose(viewRow);
 		m_billboardPoints.m_constantData.proj = XMMatrixTranspose(projRow);
+		my_Mesh1.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+
+		m_Ground.m_basicPixelConstantBufferData.eyeWorld = eyeWorld;
+		m_Ground.m_basicVertexConstantBufferData.view = XMMatrixTranspose(viewRow);
+		m_Ground.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(projRow);
+		m_Ground.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 
 
 
@@ -388,6 +407,10 @@ namespace graphics
 			my_Mesh1.m_basicPixelConstantBufferData.material.diffuse =
 				XMFLOAT3(1.0f, 0.1f, 0.1f);
 		}
+
+		XMFLOAT3 center(m_modelTranslation);
+		float radius = 1.0f;
+		m_mainBoundingSphere = BoundingSphere(center, radius);
 
 		// 마우스 클릭했을 때만 업데이트
 		if (m_leftButton || m_rightButton) {
@@ -492,10 +515,11 @@ namespace graphics
 			//my_Mesh1.m_basicVertexConstantBufferData.projection = XMMatrixTranspose(my_Mesh1.m_basicVertexConstantBufferData.projection);
 
 			// Constant를 CPU에서 GPU로 복사
-		D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
-		D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh2.m_basicVertexConstantBufferData, my_Mesh2.meshes[0]->vertexConstantBuffer);
+		//D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData, my_Mesh1.meshes[0]->vertexConstantBuffer);
+		//D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh2.m_basicVertexConstantBufferData, my_Mesh2.meshes[0]->vertexConstantBuffer);
 		D3D11Utilities::UpdateBuffer(m_d3dContext, m_billboardPoints.m_constantData,
 			m_billboardPoints.m_constantBuffer);
+
 
 		// light별 fallofEnd fallofStart값을 변경하지 않기 위해 복사해서 사용
 		auto basicPixelData{ my_Mesh1.m_basicPixelConstantBufferData };
@@ -513,10 +537,10 @@ namespace graphics
 			}
 		}
 
-		D3D11Utilities::UpdateBuffer(m_d3dContext, basicPixelData,
-			my_Mesh1.meshes[0]->pixelConstantBuffer);
-		D3D11Utilities::UpdateBuffer(m_d3dContext, basicPixelData,
-			my_Mesh2.meshes[0]->pixelConstantBuffer);
+		//D3D11Utilities::UpdateBuffer(m_d3dContext, basicPixelData,
+		//	my_Mesh1.meshes[0]->pixelConstantBuffer);
+		//D3D11Utilities::UpdateBuffer(m_d3dContext, basicPixelData,
+		//	my_Mesh2.meshes[0]->pixelConstantBuffer);
 		//// 노멀 벡터 그리기
 		//if (m_drawNormals && m_dirtyFlag) {
 
@@ -528,9 +552,9 @@ namespace graphics
 		//}
 
 		// 큐브매핑을 위한 ConstantBuffers
-		my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixIdentity();
+		//my_Mesh1.m_basicVertexConstantBufferData.world = XMMatrixIdentity();
 		// Transpose()도 생략 가능
-		m_cubeMap.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
+		//m_cubeMap.UpdateConstantBuffers(m_d3dDevice, m_d3dContext);
 
 		// Mesh의 MVP를 큐브맵의 vertexConstants로 전달
 		D3D11Utilities::UpdateBuffer(m_d3dContext, my_Mesh1.m_basicVertexConstantBufferData,
@@ -584,12 +608,6 @@ namespace graphics
 		m_d3dContext->OMSetRenderTargets(2, rtvs, m_depthStencilView.Get());
 		m_d3dContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
 
-		// 어떤 쉐이더를 사용할지 설정
-		m_d3dContext->VSSetShader(my_Mesh1.m_colorVertexShader.Get(), 0, 0);
-
-		m_d3dContext->PSSetSamplers(0, 1, my_Mesh1.m_samplerState.GetAddressOf());
-		m_d3dContext->PSSetShader(my_Mesh1.m_colorPixelShader.Get(), 0, 0);
-
 		if (m_drawAsWire)
 			m_d3dContext->RSSetState(m_wiredRasterizerState.Get());
 		else
@@ -613,13 +631,17 @@ namespace graphics
 		//	m_d3dContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		//	m_d3dContext->DrawIndexed(m_normalLines->m_indexCount, 0, 0);
 		//}
-		m_billboardPoints.Render(m_d3dContext);
+
+		//m_billboardPoints.Render(m_d3dContext);
 
 
 		my_Mesh1.Render(m_d3dContext);
 		//my_Mesh2.Render(m_d3dContext);
 		if (m_leftButton && m_selected)
 			m_cursorSphere.Render(m_d3dContext);
+
+		m_Ground.Render(m_d3dContext);
+		
 		m_cubeMap.Render(m_d3dContext);
 
 		ComPtr<ID3D11Texture2D> backBuffer;
@@ -701,11 +723,17 @@ namespace graphics
 
 		ImGui::Begin("Mesh");
 		//Transform 제어
+		if (ImGui::Checkbox("Draw Normals", &my_Mesh1.m_drawNormals)) {
+			my_Mesh1.m_drawNormalsDirtyFlag = true;
+		}
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 		if (ImGui::TreeNode("Transform")) {
+
 			DrawXMFLOAT3Control("Translation", m_modelTranslation, 0.f,  -10.f, 10.f);
 			DrawXMFLOAT3Control("Rotation", m_modelRotation, 0.f,  -180.f, 180.f);
 			DrawXMFLOAT3Control("Scale", m_modelScaling, 1.f,  .01f, 1.f);
+
+
 
 			ImGui::TreePop();
 		}

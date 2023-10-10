@@ -32,6 +32,7 @@ namespace graphics
 	protected:
 		Model my_Mesh1;
 		Model my_Mesh2;
+		Model m_Ground;
 		BoundingSphere m_mainBoundingSphere;
 		Model m_cursorSphere;
 		BillboardPoints m_billboardPoints;
@@ -75,7 +76,6 @@ namespace graphics
 		
 		//Normal
 		std::shared_ptr<Mesh> m_normalLines;
-		bool m_drawNormals = false;
 		bool m_dirtyFlag = false;
 
 		//CubeMapping

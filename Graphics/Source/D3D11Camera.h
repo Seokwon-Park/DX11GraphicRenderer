@@ -9,6 +9,8 @@ namespace graphics {
     public:
         XMMATRIX GetViewRow();
         XMMATRIX GetProjRow();
+
+        //카메라의 위치를 얻는다.
         XMFLOAT3 GetEyePos();
 
         void UpdateMouse(float mouseNdcX, float mouseNdcY);
@@ -28,7 +30,7 @@ namespace graphics {
         // m_upDir : 위쪽 방향, 중력의 반대방향이 기본
         // m_rightDir : 오른쪽 방향, eyeDir과 upDir로부터 계산
 
-        XMFLOAT3 m_position = XMFLOAT3(0.0f, 0.0f, 0.0f); // 0.15f는 눈높이 정도
+        XMFLOAT3 m_position = XMFLOAT3(0.0f, .15f, 0.0f); // 0.15f는 눈높이 정도
         XMFLOAT3 m_viewDir = XMFLOAT3(0.0f, 0.0f, 1.0f);
         XMFLOAT3 m_upDir = XMFLOAT3(0.0f, 1.0f, 0.0f); // calculate 
         XMFLOAT3 m_rightDir = XMFLOAT3(1.0f, 0.0f, 0.0f);
@@ -38,8 +40,6 @@ namespace graphics {
         float m_roll = 0.0f;
         float m_pitch = 0.0f;
         float m_yaw = 0.0f;
-
-
 
         // Proj Option
         float m_projFovAngleY = 70.0f;

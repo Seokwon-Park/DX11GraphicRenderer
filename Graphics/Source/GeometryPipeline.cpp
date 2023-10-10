@@ -22,7 +22,7 @@ namespace graphics
 
 		m_indexCount = uint32_t(points.size());
 
-		m_constantData.width = 0.1f;
+		m_constantData.width = 2.4f;
 		D3D11Utilities::CreateConstantBuffer(device, m_constantData, m_constantBuffer);
 
 		// Geometry shader 초기화하기
@@ -40,15 +40,15 @@ namespace graphics
 		D3D11Utilities::CreatePixelShader(device, L"BillBoardPS.hlsl",
 			m_pixelShader);
 
-		//std::vector<std::string> filenames = {
-		//"../Assets/Textures/TreeBillboards/1.png",
-		//"../Assets/Textures/TreeBillboards/2.png",
-		//"../Assets/Textures/TreeBillboards/3.png",
-		//"../Assets/Textures/TreeBillboards/4.png",
-		//"../Assets/Textures/TreeBillboards/5.png" };
+		std::vector<std::string> filenames = {
+		"../Assets/Textures/TreeBillboards/1.png",
+		"../Assets/Textures/TreeBillboards/2.png",
+		"../Assets/Textures/TreeBillboards/3.png",
+		"../Assets/Textures/TreeBillboards/4.png",
+		"../Assets/Textures/TreeBillboards/5.png" };
 
-		//D3D11Utilities::CreateTextureArray(device, filenames, m_texArray,
-		//	m_texArraySRV);
+		D3D11Utilities::CreateTextureArray(device, filenames, m_texArray,
+			m_texArraySRV);
 	}
 
 	void BillboardPoints::Render(ComPtr<ID3D11DeviceContext>& context) {
@@ -56,6 +56,7 @@ namespace graphics
 		context->VSSetShader(m_vertexShader.Get(), 0, 0);
 		context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 		context->PSSetShader(m_pixelShader.Get(), 0, 0);
+		context->PSSetShaderResources(0, 1, m_texArraySRV.GetAddressOf());
 
 		context->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
 		context->PSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());

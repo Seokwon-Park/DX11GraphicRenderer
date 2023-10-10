@@ -120,8 +120,8 @@
   <ItemGroup>
     <FxCompile Include="BasicPS.hlsl" />
     <FxCompile Include="BasicVS.hlsl" />
-    <FxCompile Include="NormalPixelShader.hlsl" />
-    <FxCompile Include="NormalVertexShader.hlsl" />
+    <FxCompile Include="NormalPS.hlsl" />
+    <FxCompile Include="NormalVS.hlsl" />
     <FxCompile Include="CubePS.hlsl" />
     <FxCompile Include="CubeVS.hlsl" />
     <FxCompile Include="SamplingVS.hlsl" />
@@ -131,6 +131,7 @@
     <FxCompile Include="BillBoardVS.hlsl" />
     <FxCompile Include="BillBoardPS.hlsl" />
     <FxCompile Include="BillboardGS.hlsl" />
+    <FxCompile Include="NormalGS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Commons.hlsli" />
